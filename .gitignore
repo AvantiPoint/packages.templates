@@ -1,0 +1,8 @@
+appsettings.Development.json
+bin
+obj
+.vs
+Artifacts
+*.exe
+packages
+symbols

@@ -1,0 +1,66 @@
+﻿@page
+@model IndexModel
+@inject NuGetFeedTemplate.Configuration.FeedSettings FeedSettings
+@{
+    ViewData["Title"] = User.Identity.IsAuthenticated ? "Dashboard" : "Home page";
+    var name = FeedSettings.ServerName.EndsWith("Feed", StringComparison.OrdinalIgnoreCase)
+        ? FeedSettings.ServerName : $"{FeedSettings.ServerName} Feed";
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="jumbotron jumbotron-fluid text-center">
+        <div class="container">
+            <h1 class="display-4">My Account</h1>
+            <p class="lead">Welcome to the @name! You can add the following as a package source to access the feed packages.</p>
+            <p><strong>@(Request.Scheme)://@(Request.Host)/v3/index.json</strong></p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <a class="float-right" href="create-token">Create</a>
+            <br />
+            <table width="100%">
+                <tr>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th>Expires</th>
+                    <th></th>
+                </tr>
+                @foreach(var key in Model.AuthKeys)
+                {
+                    <tr>
+                        <td>@key.Description</td>
+                        <td>@key.Created.Humanize()</td>
+                        <td>@key.Expires.Humanize()</td>
+                        <td>
+                            @if(key.Revoked)
+                            {
+                                <span>Revoked</span>
+                            }
+                            else if(!key.IsValid())
+                            {
+                                <span>Expired</span>
+                            }
+                            else
+                            {
+                                <form method="post">
+                                    <input name="Key" type="hidden" value="@(key.Key)" />
+                                    <input type="submit" value="Revoke" />
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+}
+else
+{
+        <div class="row">
+        <div class="col-12">
+            <h1 class=""display-4 text-center">Please login</h1>
+        </div>
+    </div>
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>AvantiPoint.Packages.Templates</id>
+    <version>$version$</version>
+    <authors>AvantiPoint</authors>
+    <description>The Awesome.ShinyApp Templates provide you a quick start to developing your app. Instead of spending days or even weeks just getting a project into a condition that you can make it useful the templates provide you an out of box experience that includes Central Dependency Versioning, Image Management, An out of the box UI Test project with both a Repl and Launch verification. The backend template provides you an Admin Portal and Backend API starter template. The Admin portal gives you a starter dashboard to get analytics about your app, and it will allow you to easily manage your users, view the logs using the AP.Logging plugin. It will even let you send push notifications directly to your users.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/avantipoint.com/packages.templates</projectUrl>
+    <license type="file">LICENSE.txt</license>
+    <icon>images\icon.png</icon>
+    <repository type="git" url="https://github.com/avantipoint/packages.templates.git" commit="$commitId$" />
+    <packageTypes>
+      <packageType name="Template" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <file src="LICENSE.txt" target="" />
+    <file src="icon.png" target="images\" />
+    <file src="templates/**" exclude="**\.vs\**\*;**\bin\**\*;**\obj\**\*;**\*.user;**\*.lock.json;**\.DS_Store;**\deploy\**\*;**\App_Data\**\*;**\appsettings.Development.json" target="content" />
+  </files>
+</package>

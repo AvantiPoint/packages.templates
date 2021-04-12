@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "AvantiPoint",
+  "classifications": [ "aspnetcore", "nuget" ],
+  "name": "AvantiPoint.Packages.Template",
+  "identity": "AvantiPoint.Packages.Templates.CSharp",
+  "shortName": "packagefeed",
+  "sourceName": "NuGetFeedTemplate",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "preferNameDirectory": true,
+  "symbols": {
+    "ADDomain": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "contoso.com",
+      "replaces": "ReplaceDomain"
+    },
+    "ADTenantId": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "00000000-0000-0000-0000-000000000000",
+      "replaces": "ReplaceTenantId"
+    },
+    "ADClientId": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "11111111-1111-1111-1111-111111111111",
+      "replaces": "ReplaceClientId"
+    },
+    "SendGridApiKey": {
+      "type": "parameter",
+      "datatype": "text",
+      "replaces": "ReplaceSendGridApiKey"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "rename": {
+            "appsettings.Template.json": "appsettings.Development.json"
+          }
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    {
+      "path": "NuGetFeedTemplate.csproj"
+    }
+  ]
+}
