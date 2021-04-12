@@ -1,0 +1,31 @@
+name: Build Templates
+
+on:
+  push:
+
+jobs:
+
+  build:
+    runs-on: windows-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+            fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - run: ./pack.ps1
+
+      - name: NuGet Packages
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: NuGet
+          path: Artifacts/
