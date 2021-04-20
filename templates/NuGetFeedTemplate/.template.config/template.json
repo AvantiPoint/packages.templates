@@ -1,6 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "AvantiPoint",
+  "description": "NuGet Package Feed",
   "classifications": [ "aspnetcore", "nuget" ],
   "name": "AvantiPoint.Packages.Template",
   "identity": "AvantiPoint.Packages.Templates.CSharp",
@@ -33,6 +34,7 @@
     "SendGridApiKey": {
       "type": "parameter",
       "datatype": "text",
+      "defaultValue": "",
       "replaces": "ReplaceSendGridApiKey"
     }
   },
