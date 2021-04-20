@@ -33,6 +33,6 @@ jobs:
           path: Artifacts/
 
       - name: Push to NuGet.org
-        run: ./nuget.exe push *.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $NuGet_API_Key
+        run: ./nuget.exe push *.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $($env:NuGet_API_Key)
         env:
           NuGet_API_Key: $NuGet_API_Key
