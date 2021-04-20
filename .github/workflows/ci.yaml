@@ -23,9 +23,7 @@ jobs:
           dotnet-version: '5.0.x'
 
       - name: Pack Templates
-        run: ./pack.ps1 -Version $PackageVersion
-        env:
-          PackageVersion: '1.0.$GITHUB_RUN_ID'
+        run: ./pack.ps1 -Version 1.0.$($env:GITHUB_RUN_ID)
 
       - name: NuGet Packages
         if: ${{ always() }}
