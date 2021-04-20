@@ -32,7 +32,7 @@ jobs:
           name: NuGet
           path: Artifacts/
 
-      - name: Push to NuGet.org
-        run: ./nuget.exe push ./Artifacts/AvantiPoint.Packages.Templates.1.0.$($env:GITHUB_RUN_NUMBER).nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $($env:NuGet_API_Key)
-        env:
-          NuGet_API_Key: $NuGet_API_Key
+      # - name: Push to NuGet.org
+      #   run: ./nuget.exe push ./Artifacts/AvantiPoint.Packages.Templates.1.0.$($env:GITHUB_RUN_NUMBER).nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $($env:NuGet_API_Key)
+      #   env:
+      #     NuGet_API_Key: $NuGet_API_Key
