@@ -23,7 +23,7 @@ jobs:
           dotnet-version: '5.0.x'
 
       - name: Pack Templates
-        run: ./pack.ps1 -Version 1.0.$($env:GITHUB_RUN_ID)
+        run: ./pack.ps1 -Version 1.0.$($env:GITHUB_RUN_NUMBER)
 
       - name: NuGet Packages
         if: ${{ always() }}
@@ -33,6 +33,6 @@ jobs:
           path: Artifacts/
 
       - name: Push to NuGet.org
-        run: ./nuget.exe push ./Artifacts/AvantiPoint.Packages.Templates.1.0.$($env:GITHUB_RUN_ID).nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $($env:NuGet_API_Key)
+        run: ./nuget.exe push ./Artifacts/AvantiPoint.Packages.Templates.1.0.$($env:GITHUB_RUN_NUMBER).nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $($env:NuGet_API_Key)
         env:
           NuGet_API_Key: $NuGet_API_Key
