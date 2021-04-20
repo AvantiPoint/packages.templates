@@ -4,7 +4,8 @@
     <id>AvantiPoint.Packages.Templates</id>
     <version>$version$</version>
     <authors>AvantiPoint</authors>
-    <description>The Awesome.ShinyApp Templates provide you a quick start to developing your app. Instead of spending days or even weeks just getting a project into a condition that you can make it useful the templates provide you an out of box experience that includes Central Dependency Versioning, Image Management, An out of the box UI Test project with both a Repl and Launch verification. The backend template provides you an Admin Portal and Backend API starter template. The Admin portal gives you a starter dashboard to get analytics about your app, and it will allow you to easily manage your users, view the logs using the AP.Logging plugin. It will even let you send push notifications directly to your users.</description>
+    <summary>The AvantiPoint Packages Templates gives you a quick start to self host your own NuGet Feed Api.</summary>
+    <description>The AvantiPoint Packages Templates gives you a quick start template for setting up an in house AspNetCore NuGet Api. This integrates with Azure Active Directory to allow members of your domain to quickly and easily log in and setup a Feed Auth Token. In addition to that it will handle some standard event triggers to notify users when packages and symbols are uploaded with their auth token.</description>
     <language>en-US</language>
     <projectUrl>https://github.com/avantipoint.com/packages.templates</projectUrl>
     <license type="file">LICENSE.txt</license>
