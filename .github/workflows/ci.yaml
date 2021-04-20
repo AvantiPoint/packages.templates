@@ -2,6 +2,7 @@ name: Build Templates
 
 on:
   push:
+    branches: [ master ]
 
 jobs:
 
@@ -21,7 +22,8 @@ jobs:
         with:
           dotnet-version: '5.0.x'
 
-      - run: ./pack.ps1
+      - name: Pack Templates
+        run: ./pack.ps1 -Version 1.0.$GITHUB_RUN_ID
 
       - name: NuGet Packages
         if: ${{ always() }}
@@ -29,3 +31,6 @@ jobs:
         with:
           name: NuGet
           path: Artifacts/
+
+      - name: Push to NuGet.org
+        run: ./nuget.exe push *.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey $NuGet_API_Key
