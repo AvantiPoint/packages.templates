@@ -71,12 +71,12 @@
                       @package.TotalDownloads.ToString("#,##0") total downloads
                   </span>
                 </li>
-      @*          <li>
+                <li>
                   <span class="icon-text">
                     <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
-                      last updated <span data-datetime="2021-03-22T20:10:49.4070000+00:00" title="2021-03-22T20:10:49Z">@package.</span>
+                      last updated <span data-datetime="@package.Published.ToString("F")" title="@package.Published.ToString("F")">@package.Published.Humanize()</span>
                   </span>
-                </li>*@
+                </li>
                 <li>
                   <span class="icon-text">
                     <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
