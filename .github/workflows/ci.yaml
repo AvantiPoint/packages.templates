@@ -48,7 +48,7 @@ jobs:
 
       - name: NuGet Publish
         if: ${{ github.event.workflow_run.event != 'pull_request' }}
-        uses: myci-actions/publish-nuget@2
+        uses: dansiegel/publish-nuget@master
         with:
           filename: 'Artifacts/*.nupkg'
           repo-url: ${{ secrets.IN_HOUSE_NUGET_FEED }}
@@ -56,7 +56,7 @@ jobs:
 
       - name: NuGet Publish
         if: ${{ github.event.workflow_run.event != 'pull_request' }}
-        uses: myci-actions/publish-nuget@2
+        uses: dansiegel/publish-nuget@master
         with:
           filename: 'Artifacts/*.nupkg'
           api-key: ${{ secrets.NUGET_API_KEY }}
