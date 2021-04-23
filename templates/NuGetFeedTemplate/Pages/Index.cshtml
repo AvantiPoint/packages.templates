@@ -1,136 +1,138 @@
 ﻿@page
 @model IndexModel
-@inject NuGetFeedTemplate.Configuration.FeedSettings FeedSettings
 @{
-  ViewData["Title"] = User.Identity.IsAuthenticated ? "Dashboard" : "Home page";
-  var name = FeedSettings.ServerName.EndsWith("Feed", StringComparison.OrdinalIgnoreCase)
-      ? FeedSettings.ServerName : $"{FeedSettings.ServerName} Feed";
+  ViewData["Title"] = User.Identity.IsAuthenticated ? "Packages" : "Home page";
 }
 
 @if (User.Identity.IsAuthenticated)
 {
-  <div class="page-account-settings row">
-    <div class="col-sm-12 col-md12">
-      <h1 role="list" class="ms-font-xl breadcrumb-title">
-        <span role="listitem" class="ms-noWrap"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></span>
-        <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
-        <span role="listitem" class="ms-noWrap">API keys</span>
+  <div class="row mb-3">
+    <form aria-label="Package search bar" class="col-sm-12" method="get">
+      <div class="input-group">
+        <input name="prerelease" type="hidden" value="@Model.Search.IncludePrerelease.ToString().ToLower()" />
+        <input name="q" type="text" class="form-control" id="search" aria-label="Enter packages to search" placeholder="Search for packages..." value="@Model.Search.Query">
+        <span class="input-group-btn">
+          <button class="btn btn-default btn-warning btn-search" type="submit" title="Search for packages" aria-label="Search">
+            <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
+          </button>
+        </span>
+      </div>
+    </form>
+  </div>
+  <section role="main">
+    @if(Model.SearchResponse.TotalHits == 1)
+    {
+      <h1 role="alert">
+        There is @Model.SearchResponse.TotalHits.ToString("#,##0") package
       </h1>
-      <hr class="breadcrumb-divider">
-      <p class="lead">Welcome to the @name! You can add the following as a package source to access the feed packages.</p>
-      <p><strong>@(Request.Scheme)://@(Request.Host)/v3/index.json</strong></p>
-      <p>An API Token is required to help identify you when connecting to this feed. If you have publishing rights you will need to use the NuGet v2 API Token authentication method to push packages as this is the only supported method with the NuGet client.</p>
-      <p>When consuming the Package feed from Visual Studio or CI, it is important to remember to use Basic authentication using your Email: <strong>@User.Identity.Name</strong> and a token you generate here.</p>
+    }
+    else
+    {
+      <h1 role="alert">
+        There are @Model.SearchResponse.TotalHits.ToString("#,##0") packages
+      </h1>
+    }
+    <div class="row">
+      <div class="col-sm-12">
+        @if(Model.Search.IncludePrerelease)
+        {
+          <a href="/?q=@Model.Search.Query&amp;prerelease=false">Hide Prerelease</a>
+        }
+        else
+        {
+          <a href="/?q=@Model.Search.Query&amp;prerelease=true">Show Prerelease</a>
+        }
+      </div>
     </div>
-  </div>
-  <div class="clearfix mb-3">
-    <div class="form-section-title">
-      <h2>
-        <a role="button" href="#">
-          <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
-          <span>Create</span>
-        </a>
-      </h2>
-    </div>
-  </div>
-  <div class="panel panel-default panel-collapse in" aria-expanded="true" id="create-container">
-    <div class="panel-body">
-      <form class="upsert-form" method="post">
-        <input type="hidden" name="Type" value="Create" />
-        <div class="row">
-          <div class="col-sm-7 form-group">
-            <label for="Description" class="control-label required">Key Name</label>
-            <input name="Description" type="text" class="form-control" required placeholder="Visual Studio" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-sm-6 form-group">
-            <input type="submit" class="btn btn-primary btn-block" value="Create" />
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-  <div class="clearfix">
-    <div class="form-section-title">
-      <h2>
-        <a role="button" href="#">
-          <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-          <span>Manage</span>
-        </a>
-      </h2>
-    </div>
-  </div>
-  <div class="panel panel-default panel-collapse in" aria-expanded="true" id="manage-container">
-    <div class="panel-body">
-      @if(Model.AuthKeys.Any(x => !x.IsValid()))
+    <div class="list-packages" role="list">
+      @foreach(var package in Model.SearchResponse.Data)
       {
-        <div class="icon-text alert alert-warning" role="alert" aria-live="assertive">
-          <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-          Your API @(Model.AuthKeys.Count(x => !x.IsValid()) == 1 ? "Key" : "Keys")
-          @string.Join(" and ", Model.AuthKeys.Where(x => !x.IsValid()).Select(x => $"'{x.Description}'"))
-          @(Model.AuthKeys.Count(x => !x.IsValid()) == 1 ? "has" : "have") expired.
-        </div>
-      }
-
-      @foreach(var key in Model.AuthKeys)
-      {
-        <div class="api-key-details">
+        <article class="package" role="listitem">
           <div class="row">
-            <div class="col-sm-1">
-              <img class="package-icon img-responsive" aria-hidden="true" src="/img/@(key.IsValid() ? "api-key.svg" : "api-key-expired.svg")" />
+            <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
+              <img class="package-icon img-responsive" aria-hidden="true" alt="" src="@package.IconUrl" onerror="this.src='/img/default-package-icon.svg'; this.onerror = null;">
             </div>
             <div class="col-sm-11">
-              <h3>@key.Description</h3>
-              @if(Model.GeneratedToken != null && Model.GeneratedToken.Key == key.Key)
-              {
-                <p>Be sure to copy the key as it will not be displayed again. <strong>@key.Key</strong></p>
-              }
-              <ul class="list-inline icon-details" role="presentation">
+              <div class="package-header">
+                <a class="package-title" href="#" data-track="search-selection" data-track-value="0" data-package-id="@package.PackageId" data-package-version="@package.Version" data-use-version="False">@package.PackageId</a>
+                <span class="package-by">
+                  by:
+                  @foreach(var owner in package.Authors)
+                  {
+                    <a href="#" title="@owner">@owner</a>
+                  }
+                </span>
+              </div>
+
+              <ul class="package-list">
                 <li>
-                  <i class="ms-Icon ms-Icon--Calendar" aria-hidden="true"></i>
-                  <span>Created @key.Created.Humanize()</span>
+                  <span class="icon-text">
+                      <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                      @package.TotalDownloads.ToString("#,##0") total downloads
+                  </span>
+                </li>
+      @*          <li>
+                  <span class="icon-text">
+                    <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                      last updated <span data-datetime="2021-03-22T20:10:49.4070000+00:00" title="2021-03-22T20:10:49Z">@package.</span>
+                  </span>
+                </li>*@
+                <li>
+                  <span class="icon-text">
+                    <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                    Latest version: <span class="text-nowrap">@package.Version </span>
+                  </span>
+                </li>
+                <li class="package-tags">
+                  <span class="icon-text">
+                    <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
+                    @foreach(var tag in @package.Tags)
+                    {
+                      <a href="/?q=Tags%3A%22@(tag)%22&amp;prerelease=@Model.Search.IncludePrerelease.ToString().ToLower()" title="Search for @tag">@tag</a>
+                    }
+                  </span>
                 </li>
               </ul>
-              <ul class="list-inline icon-details" role="presentation">
-                <li>
-                  <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
-                  Expires @key.Expires.Humanize()
-                </li>
-                <li>
-                  <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
-                  <!-- TODO: Add check for permissions -->
-                  Push & Consume Packages
-                </li>
-              </ul>
-              <ul class="package-list" role="presentation">
-                <li>
-                  <form method="post">
-                    <input type="hidden" name="Type" value="Regenerate" />
-                    <input type="hidden" name="Id" value="@key.Key" />
-                    <button class="btn icon-link" role="button">
-                      <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                      <span>Regenerate</span>
-                    </button>
-                  </form>
-                </li>
-                <li>
-                  <form method="post">
-                    <input type="hidden" name="Type" value="Delete" />
-                    <input type="hidden" name="Id" value="@key.Key" />
-                    <button class="btn icon-link" role="button">
-                      <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                      <span>Delete</span>
-                    </button>
-                  </form>
-                </li>
-              </ul>
+
+              <div class="package-details">
+                @package.Description
+              </div>
             </div>
           </div>
-        </div>
+        </article>
       }
     </div>
-  </div>
+    <div class="row">
+      <div class="col-xs-12 clearfix">
+        <ul class="pager">
+          @if(Model.CurrentPage - 1 >= 0)
+          {
+            <li class="previous">
+              <a href="/?page=@(Model.CurrentPage - 1)&amp;prerelease=@Model.Search.IncludePrerelease.ToString().ToLower()&amp;q=@Model.Search.Query" title="Go to the previous page.">Previous</a>
+            </li>
+          }
+          else
+          {
+            <li class="previous">
+              Previous
+            </li>
+          }
+          @if(Model.HasNext)
+          {
+            <li class="next">
+              <a href="/?page=@(Model.CurrentPage + 1)&amp;prerelease=@Model.Search.IncludePrerelease.ToString().ToLower()&amp;q=@Model.Search.Query" title="Go to the next page.">Next</a>
+            </li>
+          }
+          else
+          {
+            <li class="next">
+              Next
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
 }
 else
 {

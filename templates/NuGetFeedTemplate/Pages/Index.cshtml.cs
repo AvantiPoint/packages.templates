@@ -1,205 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Humanizer;
+﻿using System.Threading.Tasks;
+using AvantiPoint.Packages.Core;
+using AvantiPoint.Packages.Protocol.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using NuGetFeedTemplate.Configuration;
-using NuGetFeedTemplate.Data;
-using NuGetFeedTemplate.Data.Models;
-using NuGetFeedTemplate.Models;
-using NuGetFeedTemplate.Services;
-using SendGrid.Helpers.Mail;
 
 namespace NuGetFeedTemplate.Pages
 {
     public class IndexModel : PageModel
     {
-        private string _siteName { get; }
-        private ILogger<IndexModel> _logger { get; }
-        private FeedContext _dbContext { get; }
+        private ISearchService _searchService { get; }
 
-        public IndexModel(ILogger<IndexModel> logger, FeedContext dbContext, FeedSettings settings)
+        public IndexModel(ISearchService searchService)
         {
-            _logger = logger;
-            _dbContext = dbContext;
-            _siteName = settings.ServerName;
-            AuthKeys = Array.Empty<AuthToken>();
+            _searchService = searchService;
         }
 
-        public AuthToken GeneratedToken { get; set; }
+        public SearchRequest Search { get; set; }
 
-        public IEnumerable<AuthToken> AuthKeys { get; set; }
+        public SearchResponse SearchResponse { get; set; }
 
-        public async Task OnGet()
+        public int CurrentPage { get; set; }
+        public bool HasNext { get; set; }
+
+        public async Task OnGet(
+            [FromQuery(Name = "q")] string query = null,
+            [FromQuery] int page = 0,
+            [FromQuery] bool prerelease = true,
+            [FromQuery] string semVerLevel = null,
+
+            // These are unofficial parameters
+            [FromQuery] string packageType = null,
+            [FromQuery] string framework = null)
         {
-            if (!User.Identity.IsAuthenticated)
+            if(!User.Identity.IsAuthenticated)
+            {
                 return;
-
-            await RefreshKeys();
-        }
-
-        public async Task OnPost(
-            [FromForm]TokenManagementRequest tokenRequest,
-            [FromServices]IEmailService emailService)
-        {
-            switch(tokenRequest.Type)
-            {
-                case TokenRequestType.Create:
-                    await OnCreate(tokenRequest.Description, emailService);
-                    break;
-                case TokenRequestType.Regenerate:
-                    await OnRegenerate(tokenRequest.Id, emailService);
-                    break;
-                case TokenRequestType.Delete:
-                    await OnDelete(tokenRequest.Id, emailService);
-                    break;
             }
 
-            var token = await _dbContext.AuthTokens
-                .Include(x => x.User)
-                .FirstOrDefaultAsync(x =>
-                    x.Key == tokenRequest.Id &&
-                    x.UserEmail == User.FindFirstValue("preferred_username"));
-
-            if (token != null && DateTimeOffset.Now < token.Expires)
+            CurrentPage = page;
+            Search = new SearchRequest
             {
-                token.Revoked = true;
-                _dbContext.AuthTokens.Update(token);
-                await _dbContext.SaveChangesAsync();
-                await emailService.SendEmail(
-                    EmailTemplates.TokenRevoked,
-                    new EmailAddress(token.User.Email, token.User.Name),
-                    "Auth Token Revoked",
-                    new TokenAction
-                    {
-                        Description = token.Description,
-                        IPAddress = HttpContext.Connection.RemoteIpAddress.ToString()
-                    });
-                _logger.LogInformation($"{token.User.Name} has revoked the auth token: '{token.Description}'.");
-            }
-
-            await RefreshKeys();
-        }
-
-        private async Task OnCreate(string description, IEmailService emailService)
-        {
-            var authToken = new AuthToken
-            {
-                Description = description,
-                UserEmail = User.FindFirstValue("preferred_username")
+                Skip = page == 0 ? 0 : (page - 1) * 20,
+                Take = 20,
+                IncludePrerelease = prerelease,
+                IncludeSemVer2 = semVerLevel == "2.0.0",
+                PackageType = packageType,
+                Framework = framework,
+                Query = query ?? string.Empty,
             };
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
-            if (!await _dbContext.Users.AnyAsync(x => x.Email == authToken.UserEmail))
-            {
-                var user = new User
-                {
-                    Email = authToken.UserEmail,
-                    Name = User.FindFirstValue("name"),
-                    PackagePublisher = !await _dbContext.Users.AnyAsync()
-                };
-                _dbContext.Users.Add(user);
-                await _dbContext.SaveChangesAsync();
-                await emailService.SendEmail(
-                    EmailTemplates.WelcomeUser,
-                    to,
-                    $"Welcome to {_siteName}",
-                    new WelcomeMessage
-                    {
-                        Host = $"{Request.Scheme}://{Request.Host}",
-                        SiteName = _siteName,
-                        Username = user.Email
-                    });
-            }
 
-            _dbContext.AuthTokens.Add(authToken);
-            await _dbContext.SaveChangesAsync();
-            await emailService.SendEmail(
-                EmailTemplates.TokenCreated,
-                to,
-                "New Token Created",
-                new TokenAction
-                {
-                    Description = authToken.Description,
-                    Expires = authToken.Expires.ToString("F")
-                });
-
-            GeneratedToken = authToken;
-        }
-
-        private async Task OnRegenerate(string tokenKey, IEmailService emailService)
-        {
-            var authToken = await _dbContext.AuthTokens
-                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue("preferred_username"));
-
-            if (authToken is null)
-                return;
-
-            if(authToken.IsValid())
-            {
-                authToken.Revoked = true;
-                _dbContext.AuthTokens.Update(authToken);
-            }
-
-            var regeneratedToken = new AuthToken
-            {
-                Description = authToken.Description,
-                UserEmail = authToken.UserEmail,
-            };
-            _dbContext.AuthTokens.Add(regeneratedToken);
-            await _dbContext.SaveChangesAsync();
-
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
-            await emailService.SendEmail(
-                EmailTemplates.TokenRegenerated,
-                to,
-                "Token Regenerated",
-                new TokenAction
-                {
-                    Description = authToken.Description,
-                    Expires = authToken.Expires.ToString("F")
-                });
-
-            GeneratedToken = regeneratedToken;
-        }
-
-        private async Task OnDelete(string tokenKey, IEmailService emailService)
-        {
-            var authToken = await _dbContext.AuthTokens
-                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue("preferred_username"));
-
-            if (authToken is null)
-                return;
-
-            authToken.Revoked = true;
-            _dbContext.AuthTokens.Update(authToken);
-            await _dbContext.SaveChangesAsync();
-
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
-            await emailService.SendEmail(
-                EmailTemplates.TokenRevoked,
-                to,
-                "Token Revoked",
-                new TokenAction
-                {
-                    Description = authToken.Description,
-                    Expires = authToken.Expires.ToString("F")
-                });
-        }
-
-        private async Task RefreshKeys()
-        {
-            var email = User.FindFirstValue("preferred_username");
-            if (string.IsNullOrEmpty(email))
-                return;
-
-            AuthKeys = await _dbContext.AuthTokens
-                .Where(x => x.UserEmail == email && x.Revoked == false)
-                .ToArrayAsync();
+            SearchResponse =  await _searchService.SearchAsync(Search, default);
+            HasNext = (page + 1) * 20 <= SearchResponse.TotalHits;
         }
     }
 }

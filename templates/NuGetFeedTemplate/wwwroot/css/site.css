@@ -240,3 +240,61 @@ body {
 .dropdown-menu .dropdown-profile .dropdown-email {
     font-size: 14px;
 }
+
+.pager {
+  margin-top: 75px;
+  margin-bottom: 0;
+  padding-left: 0;
+  margin: 22px 0;
+  text-align: center !important;
+  list-style: none !important;
+}
+
+.pager li {
+  display: inline-block;
+  padding: 5px 14px;
+  font-size: 20px;
+  color: #666666;
+}
+
+.pager li>a, .pager li>span {
+  color: #337ab7;
+}
+
+.pager .next {
+  border-left-style: solid;
+  border-left-width: 1px;
+  border-left-color: #337ab7;
+}
+
+img.package-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.img-responsive, .thumbnail>img, .thumbnail a>img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.list-packages .package {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  word-break: break-word;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-size: 15px;
+}
+
+.list-packages .package .package-header .package-title {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: .9;
+}
+
+.list-packages .package .package-title {
+  font-size: 16px;
+  margin-top: 2px;
+}
