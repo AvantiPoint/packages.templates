@@ -41,7 +41,8 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     steps:
-      - name: actions/download-artifact@v2
+      - name: Download NuGet Template
+        uses: actions/download-artifact@v2
         with:
           name: NuGet
 
