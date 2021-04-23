@@ -21,9 +21,16 @@ namespace NuGetFeedTemplate.Data
 
         private static async Task ApplyMigrations(DbContext context)
         {
-            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-            if (pendingMigrations.Any())
-                await context.Database.MigrateAsync();
+            try
+            {
+                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+                if (pendingMigrations.Any())
+                    await context.Database.MigrateAsync();
+            }
+            catch (System.Exception)
+            {
+
+            }
         }
     }
 }
