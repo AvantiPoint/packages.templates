@@ -2,65 +2,141 @@
 @model IndexModel
 @inject NuGetFeedTemplate.Configuration.FeedSettings FeedSettings
 @{
-    ViewData["Title"] = User.Identity.IsAuthenticated ? "Dashboard" : "Home page";
-    var name = FeedSettings.ServerName.EndsWith("Feed", StringComparison.OrdinalIgnoreCase)
-        ? FeedSettings.ServerName : $"{FeedSettings.ServerName} Feed";
+  ViewData["Title"] = User.Identity.IsAuthenticated ? "Dashboard" : "Home page";
+  var name = FeedSettings.ServerName.EndsWith("Feed", StringComparison.OrdinalIgnoreCase)
+      ? FeedSettings.ServerName : $"{FeedSettings.ServerName} Feed";
 }
 
 @if (User.Identity.IsAuthenticated)
 {
-    <div class="jumbotron jumbotron-fluid text-center">
-        <div class="container">
-            <h1 class="display-4">My Account</h1>
-            <p class="lead">Welcome to the @name! You can add the following as a package source to access the feed packages.</p>
-            <p><strong>@(Request.Scheme)://@(Request.Host)/v3/index.json</strong></p>
-        </div>
+  <div class="page-account-settings row">
+    <div class="col-sm-12 col-md12">
+      <h1 role="list" class="ms-font-xl breadcrumb-title">
+        <span role="listitem" class="ms-noWrap"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></span>
+        <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+        <span role="listitem" class="ms-noWrap">API keys</span>
+      </h1>
+      <hr class="breadcrumb-divider">
+      <p class="lead">Welcome to the @name! You can add the following as a package source to access the feed packages.</p>
+      <p><strong>@(Request.Scheme)://@(Request.Host)/v3/index.json</strong></p>
+      <p>An API Token is required to help identify you when connecting to this feed. If you have publishing rights you will need to use the NuGet v2 API Token authentication method to push packages as this is the only supported method with the NuGet client.</p>
+      <p>When consuming the Package feed from Visual Studio or CI, it is important to remember to use Basic authentication using your Email: <strong>@User.Identity.Name</strong> and a token you generate here.</p>
     </div>
-    <div class="row">
-        <div class="col-12">
-            <a class="float-right" href="create-token">Create</a>
-            <br />
-            <table width="100%">
-                <tr>
-                    <th>Description</th>
-                    <th>Created</th>
-                    <th>Expires</th>
-                    <th></th>
-                </tr>
-                @foreach(var key in Model.AuthKeys)
-                {
-                    <tr>
-                        <td>@key.Description</td>
-                        <td>@key.Created.Humanize()</td>
-                        <td>@key.Expires.Humanize()</td>
-                        <td>
-                            @if(key.Revoked)
-                            {
-                                <span>Revoked</span>
-                            }
-                            else if(!key.IsValid())
-                            {
-                                <span>Expired</span>
-                            }
-                            else
-                            {
-                                <form method="post">
-                                    <input name="Key" type="hidden" value="@(key.Key)" />
-                                    <input type="submit" value="Revoke" />
-                                </form>
-                            }
-                        </td>
-                    </tr>
-                }
-            </table>
-        </div>
+  </div>
+  <div class="clearfix mb-3">
+    <div class="form-section-title">
+      <h2>
+        <a role="button" href="#">
+          <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
+          <span>Create</span>
+        </a>
+      </h2>
     </div>
+  </div>
+  <div class="panel panel-default panel-collapse in" aria-expanded="true" id="create-container">
+    <div class="panel-body">
+      <form class="upsert-form" method="post">
+        <input type="hidden" name="Type" value="Create" />
+        <div class="row">
+          <div class="col-sm-7 form-group">
+            <label for="Description" class="control-label required">Key Name</label>
+            <input name="Description" type="text" class="form-control" required placeholder="Visual Studio" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-6 form-group">
+            <input type="submit" class="btn btn-primary btn-block" value="Create" />
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="clearfix">
+    <div class="form-section-title">
+      <h2>
+        <a role="button" href="#">
+          <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+          <span>Manage</span>
+        </a>
+      </h2>
+    </div>
+  </div>
+  <div class="panel panel-default panel-collapse in" aria-expanded="true" id="manage-container">
+    <div class="panel-body">
+      @if(Model.AuthKeys.Any(x => !x.IsValid()))
+      {
+        <div class="icon-text alert alert-warning" role="alert" aria-live="assertive">
+          <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+          Your API @(Model.AuthKeys.Count(x => !x.IsValid()) == 1 ? "Key" : "Keys")
+          @string.Join(" and ", Model.AuthKeys.Where(x => !x.IsValid()).Select(x => $"'{x.Description}'"))
+          @(Model.AuthKeys.Count(x => !x.IsValid()) == 1 ? "has" : "have") expired.
+        </div>
+      }
+
+      @foreach(var key in Model.AuthKeys)
+      {
+        <div class="api-key-details">
+          <div class="row">
+            <div class="col-sm-1">
+              <img class="package-icon img-responsive" aria-hidden="true" src="/img/@(key.IsValid() ? "api-key.svg" : "api-key-expired.svg")" />
+            </div>
+            <div class="col-sm-11">
+              <h3>@key.Description</h3>
+              @if(Model.GeneratedToken != null && Model.GeneratedToken.Key == key.Key)
+              {
+                <p>Be sure to copy the key as it will not be displayed again. <strong>@key.Key</strong></p>
+              }
+              <ul class="list-inline icon-details" role="presentation">
+                <li>
+                  <i class="ms-Icon ms-Icon--Calendar" aria-hidden="true"></i>
+                  <span>Created @key.Created.Humanize()</span>
+                </li>
+              </ul>
+              <ul class="list-inline icon-details" role="presentation">
+                <li>
+                  <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
+                  Expires @key.Expires.Humanize()
+                </li>
+                <li>
+                  <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                  <!-- TODO: Add check for permissions -->
+                  Push & Consume Packages
+                </li>
+              </ul>
+              <ul class="package-list" role="presentation">
+                <li>
+                  <form method="post">
+                    <input type="hidden" name="Type" value="Regenerate" />
+                    <input type="hidden" name="Id" value="@key.Key" />
+                    <button class="btn icon-link" role="button">
+                      <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                      <span>Regenerate</span>
+                    </button>
+                  </form>
+                </li>
+                <li>
+                  <form method="post">
+                    <input type="hidden" name="Type" value="Delete" />
+                    <input type="hidden" name="Id" value="@key.Key" />
+                    <button class="btn icon-link" role="button">
+                      <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                      <span>Delete</span>
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
 }
 else
 {
-        <div class="row">
-        <div class="col-12">
-            <h1 class=""display-4 text-center">Please login</h1>
-        </div>
+  <div class="row">
+    <div class="col-12">
+      <h1 class=""display-4 text-center">Please login</h1>
     </div>
+  </div>
 }

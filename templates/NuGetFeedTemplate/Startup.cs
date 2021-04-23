@@ -30,7 +30,9 @@ namespace NuGetFeedTemplate
             services.AddNuGetPackagApi(app =>
             {
                 app.AddFileStorage()
-                   .AddSqlServerDatabase();
+                   //.AddAzureBlobStorage()
+                   .AddSqlServerDatabase(x =>
+                        x.ConnectionString = Configuration.GetConnectionString("DefaultConnection"));
             });
 
             services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
@@ -42,9 +44,6 @@ namespace NuGetFeedTemplate
                 options.FallbackPolicy = options.DefaultPolicy;
             });
             services.AddRazorPages()
-                .AddMvcOptions(options =>
-                {
-                })
                 .AddMicrosoftIdentityUI();
         }
 

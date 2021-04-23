@@ -1,21 +1,49 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
+@import 'fabric-icons-inline.css';
+
 a.navbar-brand {
   white-space: normal;
   text-align: center;
   word-break: break-all;
 }
 
+.navbar-inverse {
+  background-color: #004880 !important;
+  border-color: #002b4d;
+}
+
+    .navbar-inverse .container a, .navbar-inverse .container a:hover, .navbar-inverse .container a:active, .navbar-inverse .container .navbar-nav .btn {
+        color: #e3ebf1;
+    }
+
+    .navbar-inverse .container .navbar-nav .btn:hover {
+        box-shadow: none !important;
+    }
+
 /* Provide sufficient contrast against white background */
 a {
   color: #0366d6;
+}
+
+[role="button"] {
+  cursor: pointer;
+}
+
+h2 a, h2 a:hover, h2 a:active {
+  color: #000;
+  text-decoration: none;
 }
 
 .btn-primary {
   color: #fff;
   background-color: #1b6ec2;
   border-color: #1861ac;
+}
+
+.navbar-nav btn:focus {
+  box-shadow: none !important;
 }
 
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
@@ -68,4 +96,147 @@ body {
   width: 100%;
   white-space: nowrap;
   line-height: 60px; /* Vertically center the text there */
+}
+
+.breadcrumb-title {
+  margin-bottom: 0
+}
+
+.breadcrumb-divider {
+  margin-top: 15px;
+  margin-bottom: 15px
+}
+
+.ms-font-l {
+  font-size: 17px;
+  font-weight: 300
+}
+
+.ms-font-xl {
+  font-size: 21px;
+  font-weight: 100
+}
+
+.ms-noWrap {
+  white-space: nowrap;
+}
+
+.clearfix:before, .clearfix:after, .dl-horizontal dd:before, .dl-horizontal dd:after, .container:before, .container:after, .container-fluid:before, .container-fluid:after, .row:before, .row:after, .form-horizontal .form-group:before, .form-horizontal .form-group:after, .btn-toolbar:before, .btn-toolbar:after, .btn-group-vertical > .btn-group:before, .btn-group-vertical > .btn-group:after, .nav:before, .nav:after, .navbar:before, .navbar:after, .navbar-header:before, .navbar-header:after, .navbar-collapse:before, .navbar-collapse:after, .pager:before, .pager:after, .panel-body:before, .panel-body:after, .modal-header:before, .modal-header:after, .modal-footer:before, .modal-footer:after {
+  display: table;
+  content: " "
+}
+
+.clearfix:after, .dl-horizontal dd:after, .container:after, .container-fluid:after, .row:after, .form-horizontal .form-group:after, .btn-toolbar:after, .btn-group-vertical > .btn-group:after, .nav:after, .navbar:after, .navbar-header:after, .navbar-collapse:after, .pager:after, .panel-body:after, .modal-header:after, .modal-footer:after {
+    clear: both
+}
+
+.page-account-settings .form-section-title {
+  margin-top: 40px
+}
+
+@media(min-width: 768px) {
+  .page-account-settings .form-section-title {
+    float: left;
+    text-align: right
+  }
+}
+
+.api-key-details .icon-details {
+  color: #666666;
+  margin: 10px 0;
+}
+
+.list-inline {
+  padding-left: 0;
+  list-style: none;
+  margin-left: -5px;
+}
+
+.api-key-details .icon-details li {
+  padding: 0;
+}
+
+.api-key-details .icon-details li+li {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid #dbdbdb;
+}
+
+.list-inline>li {
+  display: inline-block;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.api-key-details {
+  padding: 20px 0;
+}
+
+.api-key-details .ms-Icon {
+  position: relative;
+  top: 2px;
+}
+
+.package-list {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  padding-left: 0;
+  line-height: 20px;
+  color: #666666;
+}
+
+    .package-list a:not(.more-tags), .package-list btn.icon-link {
+        color: #666
+    }
+
+    .package-list li {
+        list-style: none;
+        display: list-item
+    }
+
+@media(min-width: 768px) {
+    .package-list li {
+        display: inline-block;
+        line-height: 20px;
+        max-height: 101px;
+        overflow-y: hidden;
+        padding-right: 10px
+    }
+}
+
+.package-title-text {
+    margin-bottom: 0
+}
+
+.panel-default {
+  border-color: #ddd !important;
+}
+
+.panel {
+  margin-bottom: 22px;
+  background-color: #fff;
+  border: 1px solid transparent;
+  border-radius: 0;
+  -webkit-box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+}
+
+.panel-body {
+  padding: 15px;
+}
+
+.dropdown-menu {
+  min-width: 20rem !important;
+}
+
+.dropdown-header {
+  display: flex;
+}
+
+.dropdown-menu .dropdown-profile .dropdown-username {
+  font-size: 20px;
+}
+
+.dropdown-menu .dropdown-profile .dropdown-email {
+    font-size: 14px;
 }

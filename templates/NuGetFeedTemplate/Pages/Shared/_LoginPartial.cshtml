@@ -2,17 +2,34 @@
 <ul class="navbar-nav">
 @if (User.Identity.IsAuthenticated)
 {
-        <li class="nav-item">
-            <span class="navbar-text text-dark">Hello @User.Claims.FirstOrDefault(x => x.Type == "name").Value!</span>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignOut">Sign out</a>
-        </li>
+    var name = User.Claims.FirstOrDefault(x => x.Type == "name").Value;
+        var email = User.Identity.Name;
+<li>
+  <div class="dropdown">
+    <button class="btn dropdown-toggle" type="button" id="profileBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      @name
+    </button>
+    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileBtn">
+      <div class="dropdown-header row">
+        <div class="col-sm-3">
+          <img src="/profile/icon" class="img" title="@User.Identity.Name" />
+        </div>
+        <div class="col-sm-9 dropdown-profile">
+          <span class="dropdown-username">@name</span>
+          <br />
+          <span class="dropdown-email">@email</span>
+        </div>
+      </div>
+      <div class="dropdown-divider"></div>
+      <a class="dropdown-item text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignOut">Sign out</a>
+    </div>
+  </div>
+</li>
 }
 else
 {
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Sign in</a>
-        </li>
+  <li class="nav-item">
+    <a class="nav-link text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Sign in</a>
+  </li>
 }
 </ul>

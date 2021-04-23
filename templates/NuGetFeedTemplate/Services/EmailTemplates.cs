@@ -8,5 +8,6 @@
         public const string WelcomeUser = "welcome.html";
         public const string TokenCreated = "token-created.html";
         public const string TokenRevoked = "token-revoked.html";
+        public const string TokenRegenerated = "token-regenerated.html";
     }
 }

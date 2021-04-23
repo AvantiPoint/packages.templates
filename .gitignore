@@ -6,3 +6,4 @@ Artifacts
 *.exe
 packages
 symbols
+*.csproj.user
