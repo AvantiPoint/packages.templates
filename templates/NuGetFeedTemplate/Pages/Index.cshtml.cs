@@ -40,7 +40,7 @@ namespace NuGetFeedTemplate.Pages
             CurrentPage = page;
             Search = new SearchRequest
             {
-                Skip = page == 0 ? 0 : (page - 1) * 20,
+                Skip = page == 0 ? 0 : page * 20,
                 Take = 20,
                 IncludePrerelease = prerelease,
                 IncludeSemVer2 = semVerLevel == "2.0.0",
