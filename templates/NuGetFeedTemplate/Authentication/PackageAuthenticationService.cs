@@ -1,7 +1,10 @@
-﻿using System.Security.Claims;
+﻿using System.Linq;
+using System.Net;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using AvantiPoint.Packages.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NuGetFeedTemplate.Configuration;
@@ -17,14 +20,20 @@ namespace NuGetFeedTemplate.Authentication
         private ILogger _logger { get; }
 
         public PackageAuthenticationService(
-            FeedContext dbContext, 
+            FeedContext dbContext,
             FeedSettings settings,
+            IHttpContextAccessor contextAccessor,
             ILogger<PackageAuthenticationService> logger)
         {
             _dbContext = dbContext;
             _settings = settings;
             _logger = logger;
+            HttpContext = contextAccessor.HttpContext;
         }
+
+        public HttpContext HttpContext { get; }
+
+        public ConnectionInfo Connection => HttpContext.Connection;
 
         public async Task<NuGetAuthenticationResult> AuthenticateAsync(string apiKey, CancellationToken cancellationToken)
         {
@@ -60,12 +69,15 @@ namespace NuGetFeedTemplate.Authentication
                 identity.AddClaim(new Claim(ClaimTypes.Role, FeedRoles.Publisher));
             }
 
+            _logger.LogInformation($"Authenticated user: {token.User.Name} from {Connection.RemoteIpAddress}.");
             return NuGetAuthenticationResult.Success(new ClaimsPrincipal(identity));
         }
 
         private NuGetAuthenticationResult Fail(string message, bool includeRealm)
         {
             var realm = includeRealm ? $"{_settings.ServerName} Package Registry" : null;
+
+            _logger.LogWarning($"Failed login from {Connection.RemoteIpAddress} (Realm: {realm})\n{message}");
             return NuGetAuthenticationResult.Fail(message, _settings.ServerName, realm);
         }
     }

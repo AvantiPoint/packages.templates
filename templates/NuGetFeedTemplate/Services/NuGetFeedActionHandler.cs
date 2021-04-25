@@ -60,7 +60,8 @@ namespace NuGetFeedTemplate.Services
                     PackageVersion = version,
                     UserAgent = UserAgent
                 };
-                bool sendFirstUseEmail = !await _dbContext.Downloads.AnyAsync(x => x.IPAddress == RequestIP && x.AuthTokenKey == download.AuthTokenKey);
+
+                var sendFirstUseEmail = !await _dbContext.Downloads.AnyAsync(x => x.IPAddress == RequestIP && x.AuthTokenKey == download.AuthTokenKey);
                 _dbContext.Downloads.Add(download);
                 await _dbContext.SaveChangesAsync();
                 if(sendFirstUseEmail)
