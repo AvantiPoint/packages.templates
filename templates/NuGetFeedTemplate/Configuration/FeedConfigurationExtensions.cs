@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AvantiPoint.Packages.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -6,15 +6,15 @@ namespace NuGetFeedTemplate.Configuration
 {
     public static class FeedConfigurationExtensions
     {
-        public static IServiceCollection AddFeedConfiguration(this IServiceCollection services, IConfiguration configuration)
+        public static NuGetApiOptions AddFeedConfiguration(this NuGetApiOptions options)
         {
-            services.Configure<FeedSettings>(configuration.GetSection(nameof(FeedSettings)));
-            services.AddTransient(sp => sp.GetRequiredService<IOptionsSnapshot<FeedSettings>>().Value);
+            options.Services.Configure<FeedSettings>(options.Configuration.GetSection(nameof(FeedSettings)));
+            options.Services.AddTransient(sp => sp.GetRequiredService<IOptionsSnapshot<FeedSettings>>().Value);
 
-            services.Configure<EmailSettings>(configuration.GetSection(nameof(EmailSettings)));
-            services.AddTransient(sp => sp.GetRequiredService<IOptionsSnapshot<EmailSettings>>().Value);
+            options.Services.Configure<EmailSettings>(options.Configuration.GetSection(nameof(EmailSettings)));
+            options.Services.AddTransient(sp => sp.GetRequiredService<IOptionsSnapshot<EmailSettings>>().Value);
 
-            return services;
+            return options;
         }
     }
 }

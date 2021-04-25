@@ -25,14 +25,16 @@ namespace NuGetFeedTemplate
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddFeedConfiguration(Configuration);
-            services.AddFeedServices(Configuration);
-            services.AddNuGetPackagApi(app =>
+            services.AddNuGetPackagApi(options =>
             {
-                app.AddFileStorage()
-                   //.AddAzureBlobStorage()
-                   .AddSqlServerDatabase(x =>
-                        x.ConnectionString = Configuration.GetConnectionString("DefaultConnection"));
+                if (options.IsDevelopment)
+                    options.AddFileStorage();
+                else
+                    options.AddAzureBlobStorage();
+
+                options.AddFeedConfiguration()
+                   .AddFeedServices()
+                   .AddSqlServerDatabase("DefaultConnection");
             });
 
             services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
@@ -73,7 +75,6 @@ namespace NuGetFeedTemplate
 
             app.UseRouting();
 
-            //app.UseCors("AllowAll");
             app.UseOperationCancelledMiddleware();
 
             app.UseAuthentication();

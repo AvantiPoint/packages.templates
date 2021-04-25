@@ -12,24 +12,24 @@ namespace NuGetFeedTemplate.Services
 {
     public static class ServiceRegistrationExtensions
     {
-        public static IServiceCollection AddFeedServices(this IServiceCollection services, IConfiguration configuration)
+        public static NuGetApiOptions AddFeedServices(this NuGetApiOptions options)
         {
-            services.AddScoped<IPackageAuthenticationService, PackageAuthenticationService>();
-            services.AddScoped<INuGetFeedActionHandler, NuGetFeedActionHandler>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<ITemplateResourceProvider, LocalTemplateResourceProvider>();
+            options.Services.AddScoped<IPackageAuthenticationService, PackageAuthenticationService>();
+            options.Services.AddScoped<INuGetFeedActionHandler, NuGetFeedActionHandler>();
+            options.Services.AddScoped<IEmailService, EmailService>();
+            options.Services.AddScoped<ITemplateResourceProvider, LocalTemplateResourceProvider>();
 
-            services.AddTransient<ISendGridClient>(x =>
+            options.Services.AddTransient<ISendGridClient>(x =>
             {
                 var options = x.GetRequiredService<EmailSettings>();
                 return new SendGridClient(options.SendGridKey);
             });
 
-            services.AddDbContext<FeedContext>(o =>
+            options.Services.AddDbContext<FeedContext>(o =>
             {
-                o.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                o.UseSqlServer(options.Configuration.GetConnectionString("DefaultConnection"));
             });
-            return services;
+            return options;
         }
     }
 }
