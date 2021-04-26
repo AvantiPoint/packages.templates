@@ -22,6 +22,9 @@ namespace NuGetFeedTemplate.Services
             options.Services.AddTransient<ISendGridClient>(x =>
             {
                 var options = x.GetRequiredService<EmailSettings>();
+                if (string.IsNullOrEmpty(options.SendGridKey))
+                    return new NullSendGridClient();
+
                 return new SendGridClient(options.SendGridKey);
             });
 
