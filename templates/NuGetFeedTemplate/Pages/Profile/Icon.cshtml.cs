@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace NuGetFeedTemplate.Pages
+namespace NuGetFeedTemplate.Pages.Profile
 {
-    public class ProfileModel : PageModel
+    public class IconModel : PageModel
     {
         private const string requestUriFormat = "https://www.gravatar.com/avatar/{0}?s={1}&d={2}";
         public IActionResult OnGet()

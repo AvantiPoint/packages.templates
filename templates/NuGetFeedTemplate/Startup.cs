@@ -55,6 +55,7 @@ namespace NuGetFeedTemplate
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseMigrationsEndPoint();
 //#if DEBUG
 //                using var scope = app.ApplicationServices.CreateScope();
 //                using var db = scope.ServiceProvider.GetRequiredService<FeedContext>();
