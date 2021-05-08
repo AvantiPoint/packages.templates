@@ -1,0 +1,133 @@
+﻿@page "/packages/{packageId}/{packageVersion?}"
+@model NuGetFeedTemplate.Pages.Packages.PackageDetailModel
+
+@inject NuGetFeedTemplate.Configuration.FeedSettings Settings
+
+@{
+    var package = Model.PackageInfo;
+    var urlroot = $"{Request.Scheme}://{Request.Host}";
+}
+
+<header>
+  <h1>
+    <a href="/packages/@package.PackageId">
+        <img src="@package.IconUrl" class="package-icon" width="64" height="64" onError="this.onerror=null;this.src='/images/default-package-icon.svg';" />
+    </a>
+    <a href="/packages/@Uri.EscapeDataString(package.PackageId)">@package.PackageId</a>
+    <small>by @string.Join(", ", package.Authors)</small>
+  </h1>
+  <nav>
+    <div class="btn-group" style="display: inline-block">
+        <button type="button" class="btn btn-primary version">@package.Version <small>@package.Published.Humanize()</small></button>
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+            @foreach(var mv in package.Versions.Where(x => x.IsListed).OrderByDescending(x => x.Version).GroupBy(x => x.Version.Major))
+            {
+                <li><strong style="padding-left:0.5em">Version @mv.Key</strong></li>
+                foreach(var v in mv)
+                {
+                    <li><a href="~/packages/@v.PackageId/@v.Version.OriginalVersion" class="version">@v.Version.OriginalVersion <small>@v.Published.Humanize()</small></a></li>
+                }
+            }
+        </ul>
+    </div>
+
+    @if (!string.IsNullOrEmpty(package.ProjectUrl))
+    {
+        <a href="@package.ProjectUrl" type="button" class="btn btn-success">
+            <span class="ms-Icon ms-Icon--Globe" aria-hidden="true"></span>&nbsp;@Model.ProjectUrlTitle
+        </a>
+    }
+  </nav>
+
+  @if(package.IsTool)
+  {
+    <div class="code add-package-code">dotnet tool install --global @package.PackageId --version @package.Version</div>
+  }
+  else
+  {
+    <div class="code add-package-code">&lt;<span class="c-pr">PackageReference</span> <span class="c-tr">Include</span>=<span class="c-st" style="font-weight:bold">"@package.PackageId"</span> <span class="c-tr">Version</span>=<span class="c-st" style="font-weight:bold">"@package.Version"</span> /&gt;</div>
+  }
+
+  @if(package.Tags.Any())
+  {
+  <nav style="margin-top:0em;line-height:2.75em;">
+    <h4 style="margin-top:0.5em;color:#777;display:inline-block;margin-right:0.5em;padding:0;">Tags</h4>
+    @foreach(var tag in package.Tags)
+    {
+      <a class="btn btn-default btn-sm" style="color:#777" href="/packages?q=Tags%3A%22@tag%22">
+        <span class="ms-Icon ms-Icon--Tag" aria-hidden="true"></span>&nbsp;@tag
+      </a>
+    }
+  </nav>
+  }
+
+  <div class="row">
+    <div class="col-12">
+      <p>@package.Description</p>
+    </div>
+  </div>
+  @if(package.Dependencies.Any())
+  {
+  <div>
+    <h4 class="text-toggle">
+      <a data-toggle="collapse" data-target="#dependency-groups" aria-expanded="false">
+        <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+      </a>
+      <span>Dependencies</span>
+    </h4>
+    <ul class="list-unstyled panel-collapse dependency-groups collapse in" id="dependency-groups" aria-expanded="true" style="">
+    @foreach((var framework, var dependencies) in package.Dependencies.OrderBy(x => x.Key))
+    {
+      <li>
+        <h4><span>@framework</span></h4>
+        <ul class="list-unstyled dependency-group">
+        @if(dependencies.Any(x => !string.IsNullOrEmpty(x.PackageId)))
+        {
+          @foreach(var dependency in dependencies)
+          {
+            <li>
+              <a href="@(dependency.IsLocalDependency ? $"/packages/{dependency.PackageId}" : "#")">@dependency.PackageId</a>
+              <span>@dependency.VersionRange</span>
+            </li>
+          }
+        }
+        else
+        {
+          <li>No dependencies.</li>
+        }
+        </ul>
+      </li>
+    }
+    </ul>
+  </div>
+
+@section Scripts {
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('a[data-toggle="collapse"]').click(function () {
+        $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
+      })
+    });
+  </script>
+}
+  }
+  <hr />
+
+  <h3>Badges</h3>
+  <a href="/shield/@Uri.EscapeDataString(package.PackageId)/vpre"><img src="/shield/@package.PackageId/vpre" /></a>
+
+  <h4>URL</h4>
+  <pre><code>// Latest Stable
+@urlroot/shield/@Uri.EscapeDataString(package.PackageId)
+
+// Latest Preview
+@urlroot/shield/@Uri.EscapeDataString(package.PackageId)/vpre</code></pre>
+
+  <h4>Markdown</h4>
+  <pre><code>[![@package.PackageId on @Settings.ServerName](@urlroot/shield/@Uri.EscapeDataString(package.PackageId)/vpre)](@urlroot/shield/@Uri.EscapeDataString(package.PackageId)/vpre)</code></pre>
+
+</header>
