@@ -36,10 +36,18 @@ namespace NuGetFeedTemplate.Pages
 
         public IEnumerable<AuthToken> AuthKeys { get; set; }
 
-        public async Task OnGet()
+        public int TotalKeys { get; set; }
+
+        public int CurrentPage { get; set; }
+
+        public bool HasNext { get; set; }
+
+        public async Task OnGet(int page = 1)
         {
             if (!User.Identity.IsAuthenticated)
                 return;
+
+            CurrentPage = page;
 
             await RefreshKeys();
         }
@@ -198,8 +206,26 @@ namespace NuGetFeedTemplate.Pages
             if (string.IsNullOrEmpty(email))
                 return;
 
+            if (CurrentPage < 1)
+                CurrentPage = 1;
+
+            TotalKeys = await _dbContext.AuthTokens
+                .Where(x => x.UserEmail == User.FindFirstValue("preferred_username"))
+                .CountAsync();
+
+            var lastPage = (int)Math.Ceiling((double)TotalKeys / 10.0);
+
+            if (CurrentPage > lastPage)
+                CurrentPage = lastPage;
+
+            HasNext = CurrentPage < lastPage;
+
+            var skip = (CurrentPage - 1) * 10;
+
             AuthKeys = await _dbContext.AuthTokens
                 .Where(x => x.UserEmail == email && x.Revoked == false)
+                .Skip(skip)
+                .Take(10)
                 .ToArrayAsync();
         }
     }
