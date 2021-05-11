@@ -6,6 +6,9 @@
   ViewData["Title"] = "API Keys";
   var name = FeedSettings.ServerName.EndsWith("Feed", StringComparison.OrdinalIgnoreCase)
       ? FeedSettings.ServerName : $"{FeedSettings.ServerName} Feed";
+
+  var previousPage = Model.CurrentPage - 1;
+  var nextPage = Model.CurrentPage + 1;
 }
 
 <div class="page-account-settings row">
@@ -53,14 +56,14 @@
 <div class="clearfix">
   <div class="form-section-title">
     <h2>
-      <a role="button" href="#">
+      <a role="button" data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
         <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
         <span>Manage</span>
       </a>
     </h2>
   </div>
 </div>
-<div class="panel panel-default panel-collapse in" aria-expanded="true" id="manage-container">
+<div class="panel panel-default panel-collapse in collapse show" aria-expanded="true" id="manage-container">
   <div class="panel-body">
     @if(Model.AuthKeys.Any(x => !x.IsValid()))
     {
@@ -128,5 +131,37 @@
         </div>
       </div>
     }
+
+    <div class="row text-center">
+      <div class="col-12">
+        @if(Model.CurrentPage > 1)
+        {
+          <a href="/account/apikeys?page=@previousPage">Previous</a>
+        }
+        else
+        {
+          <span>Previous</span>
+        }
+        <span> | </span>
+        @if(Model.HasNext)
+        {
+          <a href="/account/apikeys?page=@nextPage">Next</a>
+        }
+        else
+        {
+          <span>Next</span>
+        }
+      </div>
+    </div>
   </div>
 </div>
+
+@section Scripts {
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('a[data-toggle="collapse"]').click(function () {
+        $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
+      })
+    });
+  </script>
+}

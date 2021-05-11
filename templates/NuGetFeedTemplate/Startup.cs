@@ -1,14 +1,19 @@
+using System.Security.Claims;
+using System.Threading.Tasks;
 using AvantiPoint.Packages;
 using AvantiPoint.Packages.Hosting;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using NuGetFeedTemplate.Configuration;
+using NuGetFeedTemplate.Data;
+using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Services;
 
 namespace NuGetFeedTemplate
@@ -39,6 +44,15 @@ namespace NuGetFeedTemplate
 
             services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
+
+            services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            {
+                options.Events = new OpenIdConnectEvents
+                {
+                    OnTokenValidated = OnTokenValidated
+                };
+            });
+
 
             services.AddAuthorization(options =>
             {
@@ -87,6 +101,30 @@ namespace NuGetFeedTemplate
                 endpoints.MapControllers();
                 endpoints.MapNuGetApiRoutes();
             });
+        }
+
+        private async Task OnTokenValidated(TokenValidatedContext ctx)
+        {
+            var feedContext = ctx.HttpContext.RequestServices.GetRequiredService<FeedContext>();
+            var email = ctx.Principal.FindFirstValue("preferred_username");
+            var user = await feedContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if(user is null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    Name = ctx.Principal.FindFirstValue("name"),
+                    PackagePublisher = !await feedContext.Users.AnyAsync()
+                };
+                feedContext.Users.Add(user);
+                await feedContext.SaveChangesAsync();
+            }
+
+            if(user.PackagePublisher)
+            {
+                var claimsIdentity = ctx.Principal.Identity as ClaimsIdentity;
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
+            }
         }
     }
 }
