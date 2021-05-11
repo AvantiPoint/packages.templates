@@ -12,19 +12,20 @@ namespace NuGetFeedTemplate.Pages.Profile
     public class IconModel : PageModel
     {
         private const string requestUriFormat = "https://www.gravatar.com/avatar/{0}?s={1}&d={2}";
-        public IActionResult OnGet()
+        public IActionResult OnGet(string email, int size = 50)
         {
             if(User.Identity.IsAuthenticated)
             {
-                var email = User.Identity.Name;
-                return Redirect(GetGravatarUri(email));
+                if(string.IsNullOrEmpty(email))
+                    email = User.Identity.Name;
+                return Redirect(GetGravatarUri(email, size));
             }
 
             return Redirect("/img/user.svg");
         }
 
-        private string GetGravatarUri(string email)
-            => string.Format(requestUriFormat, GetMd5Hash(email), 50, "mp");
+        private string GetGravatarUri(string email, int size)
+            => string.Format(requestUriFormat, GetMd5Hash(email), size, "mp");
 
         static string GetMd5Hash(string str)
         {
