@@ -1,0 +1,166 @@
+﻿@page "/account/package-groups"
+@model NuGetFeedTemplate.Pages.Account.PackageGroupsModel
+@{
+    var hasGroups = Model.PackageGroups.Any();
+}
+
+<div class="page-account-settings row">
+  <div class="col-sm-12 col-md12">
+    <h1 role="list" class="ms-font-xl breadcrumb-title">
+      <span role="listitem" class="ms-noWrap"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></span>
+      <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+      <span role="listitem" class="ms-noWrap">Package Groups</span>
+    </h1>
+    <hr class="breadcrumb-divider">
+    <p class="lead">Projects often have multiple packages to manage. Package groups allow you to manage those packages as a whole including the ability to push or syndicate on upload those member packages to downstream package sources.</p>
+  </div>
+</div>
+
+
+<div class="clearfix mb-3">
+  <div class="form-section-title">
+    <h2>
+      <a role="button" href="#">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
+        <span>Create</span>
+      </a>
+    </h2>
+  </div>
+</div>
+<div class="panel panel-default panel-collapse in" aria-expanded="true" id="create-container">
+  <div class="panel-body">
+    <form class="upsert-form" method="post">
+      <div class="row">
+        <div class="col-sm-5 form-group">
+          <label for="Name" class="control-label required">Project Name</label>
+          <input name="Name" type="text" class="form-control" required placeholder="Awesome Lib" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 form-group">
+          <input type="submit" class="btn btn-primary btn-block" value="Create" />
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if(hasGroups)
+{
+<div class="clearfix">
+  <div class="form-section-title">
+    <h2>
+      <a data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
+        <i class="ms-Icon ms-Icon--ChevronDown ms-font-m" aria-hidden="true"></i>
+      </a>
+      <span>Manage</span>
+    </h2>
+  </div>
+</div>
+<div class="panel panel-default panel-collapse in collapse show" id="manage-container" aria-expanded="true">
+  <div class="panel-body">
+    @foreach(var group in Model.PackageGroups)
+    {
+    <div class="row">
+      <div class="col-12">
+        <h4>@group.Name</h4>
+        <form action="/api/account/package-groups/@group.Name/push-latest" method="post" class="form-inline">
+          <input type="hidden" name="group" value="@group.Name" />
+          <div class="form-group">
+            <label for="feed" class="mr-3">Push Latest</label>
+            <select name="feed" class="form-control">
+              <option selected="selected">Please Select</option>
+              @foreach(var feed in Model.PublishTargets)
+              {
+              <option value="@feed.Name">@feed.Name</option>
+              }
+            </select>
+          </div>
+          <div class="form-group ml-3">
+            <input type="submit" class="form-control btn btn-primary" value="Push" />
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Packages</h5>
+        <ul>
+        @foreach(var member in group.Members)
+        {
+          <li>
+            @member.PackageId -
+            <a asp-controller="Account" asp-action="RemovePackageFromGroup" asp-route-packageId="@member.PackageId" asp-route-groupName="@group.Name">
+              <i class="ms-Icon ms-Icon--Delete"></i>
+            </a>
+          </li>
+        }
+        @if(!group.Members.Any())
+        {
+          <li>No packages...</li>
+        }
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h5>Automatic Syndication Sources</h5>
+        <ul>
+        @foreach(var feed in group.Syndications)
+        {
+          <li>
+            @feed.PublishTarget.Name -
+            <a asp-controller="Account" asp-action="RemoveSyndicationFromGroup" asp-route-targetName="@feed.PublishTargetName" asp-route-groupName="@group.Name">
+              <i class="ms-Icon ms-Icon--Delete"></i>
+            </a>
+          </li>
+        }
+        @if(!group.Syndications.Any())
+        {
+          <li>Not syndicated...</li>
+        }
+        </ul>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <form action="/api/account/package-groups/add/package" method="post">
+          <input type="hidden" name="group" value="@group.Name" />
+          <div class="form-group">
+            <input name="packageId" class="form-control" placeholder="Package Id"/>
+          </div>
+          <div class="form-group">
+            <input type="submit" class="form-control btn btn-primary" value="Add" />
+          </div>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <form action="/api/account/package-groups/add/syndication" method="post">
+          <input type="hidden" name="group" value="@group.Name" />
+          <div class="form-group">
+            <select name="feed" class="form-control">
+              <option selected="selected">Please Select</option>
+              @foreach(var feed in Model.PublishTargets)
+              {
+              <option value="@feed.Name">@feed.Name</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <input type="submit" class="form-control btn btn-primary" value="Add" />
+          </div>
+        </form>
+      </div>
+    </div>
+    }
+  </div>
+</div>
+
+@section Scripts {
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('a[data-toggle="collapse"]').click(function () {
+        $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
+      })
+    });
+  </script>
+}
+}

@@ -18,6 +18,7 @@ namespace NuGetFeedTemplate.Services
             options.Services.AddScoped<INuGetFeedActionHandler, NuGetFeedActionHandler>();
             options.Services.AddScoped<IEmailService, EmailService>();
             options.Services.AddScoped<ITemplateResourceProvider, LocalTemplateResourceProvider>();
+            options.Services.AddScoped<ISyndicationService, SyndicationService>();
 
             options.Services.AddTransient<ISendGridClient>(x =>
             {

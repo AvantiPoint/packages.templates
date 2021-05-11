@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AvantiPoint.Packages.Core;
 using AvantiPoint.Packages.Hosting;
+using AvantiPoint.Packages.Protocol;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
 using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
@@ -18,17 +22,20 @@ namespace NuGetFeedTemplate.Services
         private FeedContext _dbContext { get; }
         private IEmailService _emailService { get; }
         private ILogger _logger { get; }
+        private ISyndicationService _syndicationService { get; }
 
         public NuGetFeedActionHandler(
             IHttpContextAccessor contextAccessor,
             IEmailService emailService,
             FeedContext dbContext,
+            ISyndicationService syndicationService,
             ILogger<NuGetFeedActionHandler> logger)
         {
             HttpContext = contextAccessor.HttpContext;
             _dbContext = dbContext;
             _emailService = emailService;
             _logger = logger;
+            _syndicationService = syndicationService;
 
             UserAgent = HttpContext.Request.Headers.TryGetValue("User-Agent", out var ua) ? ua.ToString() : null;
             RequestIP = HttpContext.Connection.RemoteIpAddress.ToString();
@@ -71,13 +78,14 @@ namespace NuGetFeedTemplate.Services
             {
                 _logger.LogError(ex, $"Unexpected error handling OnPackageDownloaded - {packageId} {version}");
             }
-            
         }
 
-        public Task OnPackageUploaded(string packageId, string version)
+        public async Task OnPackageUploaded(string packageId, string version)
         {
             _logger.LogInformation($"{User.Identity.Name} uploaded {packageId}.{version}.nupkg");
-            return SendEmail(EmailTemplates.PackageUploaded, $"Package Uploaded - {packageId} {version}", packageId, version);
+            await SendEmail(EmailTemplates.PackageUploaded, $"Package Uploaded - {packageId} {version}", packageId, version);
+
+            await _syndicationService.SyndicatePackage(packageId, NuGetVersion.Parse(version));
         }
 
         public Task OnSymbolsDownloaded(string packageId, string version)
@@ -85,10 +93,12 @@ namespace NuGetFeedTemplate.Services
             return Task.CompletedTask;
         }
 
-        public Task OnSymbolsUploaded(string packageId, string version)
+        public async Task OnSymbolsUploaded(string packageId, string version)
         {
             _logger.LogInformation($"{User.Identity.Name} uploaded {packageId}.{version}.snupkg");
-            return SendEmail(EmailTemplates.SymbolsUploaded, $"Symbols Uploaded - {packageId} {version}", packageId, version);
+            await SendEmail(EmailTemplates.SymbolsUploaded, $"Symbols Uploaded - {packageId} {version}", packageId, version);
+
+            await _syndicationService.SyndicateSymbols(packageId, NuGetVersion.Parse(version));
         }
 
         private async Task SendEmail(string templateId, string subject, string packageId, string version)

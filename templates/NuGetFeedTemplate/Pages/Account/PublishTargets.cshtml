@@ -1,0 +1,128 @@
+﻿@page "/account/publish-targets"
+@model NuGetFeedTemplate.Pages.Account.PublishTargetsModel
+@{
+    var hasTargets = Model.PublishTargets.Any();
+    var headerIcon = "Add";
+    var headerTitle = "Create";
+    var readonlyName = string.Empty;
+    var submitButton = "Create";
+    if (!string.IsNullOrEmpty(Model.Target.Name))
+    {
+        headerIcon = "Add";
+        headerTitle = "Edit";
+        readonlyName = "disabled";
+        submitButton = "Save";
+    }
+}
+
+<div class="page-account-settings row">
+  <div class="col-sm-12 col-md12">
+    <h1 role="list" class="ms-font-xl breadcrumb-title">
+      <span role="listitem" class="ms-noWrap"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></span>
+      <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+      <span role="listitem" class="ms-noWrap">Publish Targets</span>
+    </h1>
+    <hr class="breadcrumb-divider">
+    <p class="lead">Add downstream Package Sources (i.e. nuget.org). You will be able to publish packages to your downstream sources. Sources added as Syndication targets to Package groups will automatically replicate to the downstream source when a member package is published.</p>
+  </div>
+</div>
+
+
+<div class="clearfix mb-3">
+  <div class="form-section-title">
+    <h2>
+      <a role="button">
+        <i class="ms-Icon ms-Icon--@headerIcon" aria-hidden="true"></i>
+        <span>@headerTitle</span>
+      </a>
+    </h2>
+  </div>
+</div>
+<div class="panel panel-default panel-collapse in" aria-expanded="true" id="create-container">
+  <div class="panel-body">
+    <form class="upsert-form" method="post">
+      <div class="row">
+        <div class="col-sm-4 form-group">
+          <label for="Name" class="control-label required">Package Feed Name</label>
+          @if(string.IsNullOrEmpty(Model.Target.Name))
+          {
+            <input name="Name" type="text" class="form-control" required placeholder="NuGet.org" />
+          }
+          else
+          {
+            <input type="hidden" name="Name" value="@Model.Target.Name" />
+            <input type="text" class="form-control" value="@Model.Target.Name" disabled />
+          }
+        </div>
+        <div class="col-sm-8 form-group">
+          <label for="PublishEndpoint" class="control-label required">Url</label>
+          <input name="PublishEndpoint" type="url" class="form-control" required placeholder="https://api.nuget.org/v3/index.json" value="@Model.Target.PublishEndpoint" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 form-group">
+          <label for="ApiToken" class="control-label required">API Token</label>
+          <input name="ApiToken" type="text" class="form-control" required placeholder="your token..." />
+        </div>
+        <div class="col-sm-1 form-group">
+          <label for="Legacy" class="control-label required">Legacy</label>
+          <input name="Legacy" type="checkbox" class="form-control" value="@Model.Target.Legacy" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6 form-group">
+          <input type="submit" class="btn btn-primary btn-block" value="@submitButton" />
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if(hasTargets)
+{
+<div class="clearfix">
+  <div class="form-section-title">
+    <h2>
+      <a data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
+        <i class="ms-Icon ms-Icon--ChevronDown ms-font-m" aria-hidden="true"></i>
+      </a>
+      <span>Manage</span>
+    </h2>
+  </div>
+</div>
+<div class="panel panel-default panel-collapse in collapse show" id="manage-container" aria-expanded="true">
+  <div class="panel-body">
+    @foreach(var target in Model.PublishTargets)
+    {
+      <div class="row">
+        <div class="col-12">
+          <h3>@target.Name - (<span class="small">@target.PublishEndpoint</span>)</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          Modified: @target.Timestamp.Humanize() by @target.AddedBy
+        </div>
+      </div>
+      <div class="row text-center">
+        <div class="col-12">
+          <a href="/account/publish-targets?edit=@target.Name">Edit</a>
+          <span> | </span>
+          <a href="/api/account/syndication-target/@target.Name/delete">Delete</a>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@section Scripts {
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('a[data-toggle="collapse"]').click(function () {
+        $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
+      })
+    });
+  </script>
+}
+}

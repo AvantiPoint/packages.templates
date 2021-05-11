@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NuGetFeedTemplate.Data.Models;
 
 namespace NuGetFeedTemplate.Data
@@ -20,6 +16,14 @@ namespace NuGetFeedTemplate.Data
 
         public DbSet<User> Users { get; set; }
 
+        public DbSet<PackageGroup> PackageGroups { get; set; }
+
+        public DbSet<PackageGroupMember> PackageGroupMembers { get; set; }
+
+        public DbSet<PublishTarget> PublishTargets { get; set; }
+
+        public DbSet<PackageGroupSyndication> Syndications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -36,6 +40,22 @@ namespace NuGetFeedTemplate.Data
             modelBuilder.Entity<AuthToken>()
                 .Property(x => x.Expires)
                 .HasDefaultValueSql("DATEADD(year, 1, SYSDATETIMEOFFSET())");
+
+            modelBuilder.Entity<PackageGroup>()
+                .HasKey(x => x.Name);
+
+            modelBuilder.Entity<PackageGroupMember>()
+                .HasKey(x => new { x.PackageGroupName, x.PackageId });
+
+            modelBuilder.Entity<PublishTarget>()
+                .HasKey(x => x.Name);
+
+            modelBuilder.Entity<PublishTarget>()
+                .Property(x => x.Timestamp)
+                .HasDefaultValueSql("SYSDATETIMEOFFSET()");
+
+            modelBuilder.Entity<PackageGroupSyndication>()
+                .HasKey(x => new { x.PackageGroupName, x.PublishTargetName });
         }
     }
 }
