@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AvantiPoint.Packages.Core;
 using AvantiPoint.Packages.Protocol;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGetFeedTemplate.Data;
@@ -97,9 +94,12 @@ namespace NuGetFeedTemplate.Controllers
             var targets = group.Syndications.Select(x => x.PublishTarget);
             foreach(var package in group.Members)
             {
-                var nugetPackage = await _context.Packages.Where(x => x.Id == package.PackageId && x.Listed == true)
+                var nugetPackages = await _context.Packages.Where(x => x.Id == package.PackageId && x.Listed == true)
+                    .ToArrayAsync();
+
+                var nugetPackage = nugetPackages
                     .OrderByDescending(x => x.Version)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefault();
 
                 if (nugetPackage is null)
                     continue;

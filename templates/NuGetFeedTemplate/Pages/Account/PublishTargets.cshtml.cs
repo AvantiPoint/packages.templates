@@ -39,7 +39,7 @@ namespace NuGetFeedTemplate.Pages.Account
             }
         }
 
-        public async Task OnPost([Bind(nameof(PublishTarget.PublishEndpoint), nameof(PublishTarget.Name), nameof(PublishTarget.ApiToken), nameof(PublishTarget.Legacy))]PublishTarget target)
+        public async Task OnPost([FromForm]PublishTarget target)
         {
             Target = new PublishTarget();
             var existingTarget = await _db.PublishTargets.FirstOrDefaultAsync(x => x.Name == target.Name);
