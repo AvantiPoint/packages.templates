@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvantiPoint.Packages.Azure" Version="2.0.56-pre" />
-    <PackageReference Include="AvantiPoint.Packages.Database.SqlServer" Version="2.0.56-pre" />
-    <PackageReference Include="AvantiPoint.Packages.Hosting" Version="2.0.56-pre" />
+    <PackageReference Include="AvantiPoint.Packages.Azure" Version="2.0.59" />
+    <PackageReference Include="AvantiPoint.Packages.Database.SqlServer" Version="2.0.59" />
+    <PackageReference Include="AvantiPoint.Packages.Hosting" Version="2.0.59" />
     <PackageReference Include="Handlebars.Net" Version="2.0.9" />
     <PackageReference Include="Humanizer" Version="2.11.10" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" NoWarn="NU1605" />
