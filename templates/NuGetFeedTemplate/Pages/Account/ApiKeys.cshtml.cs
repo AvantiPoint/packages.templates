@@ -221,9 +221,12 @@ namespace NuGetFeedTemplate.Pages
             HasNext = CurrentPage < lastPage;
 
             var skip = (CurrentPage - 1) * 10;
+            if (skip < 0)
+                skip = 0;
 
             AuthKeys = await _dbContext.AuthTokens
                 .Where(x => x.UserEmail == email && x.Revoked == false)
+                .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(10)
                 .ToArrayAsync();

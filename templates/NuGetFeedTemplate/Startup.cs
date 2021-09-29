@@ -15,6 +15,8 @@ using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Services;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace NuGetFeedTemplate
 {
@@ -32,10 +34,15 @@ namespace NuGetFeedTemplate
         {
             services.AddNuGetPackagApi(options =>
             {
-                if (options.IsDevelopment)
-                    options.AddFileStorage();
-                else
-                    options.AddAzureBlobStorage();
+                switch(options.Options.Storage.Type)
+                {
+                    case "AzureBlobStorage":
+                        options.AddAzureBlobStorage();
+                        break;
+                    default:
+                        options.AddFileStorage();
+                        break;
+                }
 
                 options.AddFeedConfiguration()
                    .AddFeedServices()
@@ -86,13 +93,6 @@ namespace NuGetFeedTemplate
             {
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
-//#if DEBUG
-//                using var scope = app.ApplicationServices.CreateScope();
-//                using var db = scope.ServiceProvider.GetRequiredService<FeedContext>();
-//                db.Database.EnsureCreated();
-//                using var db2 = scope.ServiceProvider.GetRequiredService<SqlServerContext>();
-//                db2.Database.Migrate();
-//#endif
             }
             else
             {
