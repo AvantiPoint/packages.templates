@@ -53,7 +53,6 @@ namespace NuGetFeedTemplate
                 };
             });
 
-
             services.AddAuthorization(options =>
             {
                 // By default, all incoming requests will be authorized according to the default policy
@@ -61,6 +60,23 @@ namespace NuGetFeedTemplate
             });
             services.AddRazorPages()
                 .AddMicrosoftIdentityUI();
+
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = int.MaxValue;
+            });
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = int.MaxValue; // if don't set default value is: 30 MB
+            });
+
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue; // if don't set default value is: 128 MB
+                x.MultipartHeadersLengthLimit = int.MaxValue;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
