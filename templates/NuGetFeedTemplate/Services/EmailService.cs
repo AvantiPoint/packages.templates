@@ -36,9 +36,6 @@ namespace NuGetFeedTemplate.Services
                 Handlebars.RegisterHelper("Message", RawOutput);
                 var template = Handlebars.Compile(htmlTemplate);
                 var msg = MailHelper.CreateSingleEmail(From, to, subject, null, template(context));
-#if DEBUG
-                msg.SetClickTracking(false, false);
-#endif
                 var response = await _client.SendEmailAsync(msg);
                 return response.StatusCode == System.Net.HttpStatusCode.Accepted;
             }

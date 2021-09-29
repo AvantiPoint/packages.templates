@@ -15,6 +15,8 @@ using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Services;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace NuGetFeedTemplate
 {
@@ -32,10 +34,15 @@ namespace NuGetFeedTemplate
         {
             services.AddNuGetPackagApi(options =>
             {
-                if (options.IsDevelopment)
-                    options.AddFileStorage();
-                else
-                    options.AddAzureBlobStorage();
+                switch(options.Options.Storage.Type)
+                {
+                    case "AzureBlobStorage":
+                        options.AddAzureBlobStorage();
+                        break;
+                    default:
+                        options.AddFileStorage();
+                        break;
+                }
 
                 options.AddFeedConfiguration()
                    .AddFeedServices()
@@ -53,7 +60,6 @@ namespace NuGetFeedTemplate
                 };
             });
 
-
             services.AddAuthorization(options =>
             {
                 // By default, all incoming requests will be authorized according to the default policy
@@ -61,6 +67,23 @@ namespace NuGetFeedTemplate
             });
             services.AddRazorPages()
                 .AddMicrosoftIdentityUI();
+
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = int.MaxValue;
+            });
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = int.MaxValue; // if don't set default value is: 30 MB
+            });
+
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue; // if don't set default value is: 128 MB
+                x.MultipartHeadersLengthLimit = int.MaxValue;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,13 +93,6 @@ namespace NuGetFeedTemplate
             {
                 app.UseDeveloperExceptionPage();
                 app.UseMigrationsEndPoint();
-//#if DEBUG
-//                using var scope = app.ApplicationServices.CreateScope();
-//                using var db = scope.ServiceProvider.GetRequiredService<FeedContext>();
-//                db.Database.EnsureCreated();
-//                using var db2 = scope.ServiceProvider.GetRequiredService<SqlServerContext>();
-//                db2.Database.Migrate();
-//#endif
             }
             else
             {
