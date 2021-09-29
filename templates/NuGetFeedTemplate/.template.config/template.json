@@ -45,6 +45,11 @@
           "rename": {
             "appsettings.Template.json": "appsettings.Development.json"
           }
+        },
+        {
+          "rename": {
+            "git.ignore": ".gitignore"
+          }
         }
       ]
     }
