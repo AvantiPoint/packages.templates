@@ -1,5 +1,6 @@
 ﻿@page "/account/manage/users"
 @model NuGetFeedTemplate.Pages.Account.UsersModel
+@using System.Security.Claims
 @{
 }
 
@@ -17,40 +18,51 @@
 
 <div class="panel panel-default panel-collapse in" aria-expanded="true">
   <div class="panel-body">
-    @foreach(var user in Model.Users)
-    {
-      <div class="row">
-        <div class="col-md-2">
-          <img src="/profile/icon?email=@user.Email&size=100" class="img img-responsive img-circle" />
-        </div>
-        <div class="col-md-7">
-          <h4>@user.Name</h4>
-          <h5>@user.Email</h5>
-        </div>
-        <div class="col-md-3">
-          <div class="row">
-            <div class="col-12">
-              <strong>Admin</strong>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-12">
-              <form method="post" class="form-inline">
-                <input type="hidden" name="Email" value="@user.Email" />
-                <input type="hidden" name="PackagePublisher" value="@((!user.PackagePublisher).ToString())" />
-                @if(user.PackagePublisher)
-                {
-                  <button type="submit" class="btn btn-primary">Remove Access</button>
-                }
-                else
-                {
-                   <button type="submit" class="btn btn-primary">Make Admin</button>
-                }
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th width="150px"></th>
+          <th>Name</th>
+          <th width="150px">Admin Access</th>
+          <th width="150px">Feed Access</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach(var user in Model.Users)
+        {
+          <tr>
+            <td><img src="/profile/icon?email=@user.Email&size=100" class="img img-fluid img-circle mx-3 my-2" /></td>
+            <td>
+              <h4>@user.Name</h4>
+              <h5>@user.Email</h5>
+            </td>
+            <td class="px-3">
+              @if(User.FindFirstValue(ClaimTypes.Email) != user.Email)
+              {
+                <br />
+                <form method="post" class="form-inline">
+                  <input type="hidden" name="Email" value="@user.Email" />
+                  <input type="hidden" name="PackagePublisher" value="@((!user.PackagePublisher).ToString())" />
+                  @if(user.PackagePublisher)
+                  {
+                    <button type="submit" class="btn btn-primary">Remove</button>
+                  }
+                  else
+                  {
+                    <button type="submit" class="btn btn-primary">Promote</button>
+                  }
               </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    }
+              }
+            </td>
+            <td class="px-3">
+              @if(User.FindFirstValue(ClaimTypes.Email) != user.Email)
+              {
+                <!-- TODO: Add Revoke Access -->
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </div>
 </div>

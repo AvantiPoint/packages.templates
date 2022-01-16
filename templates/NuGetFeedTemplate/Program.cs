@@ -1,29 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Builder;
+using NuGetFeedTemplate;
 using NuGetFeedTemplate.Data;
 
-namespace NuGetFeedTemplate
-{
-    public class Program
-    {
-        public static async Task Main(string[] args)
-        {
-            var host = CreateHostBuilder(args).Build();
-            await host.InitializeDatabaseContext();
-            await host.RunAsync();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-}
+var builder = WebApplication.CreateBuilder(args);
+Startup.ConfigureServices(builder.Services, builder.Configuration);
+var app = builder.Build();
+await app.InitializeDatabaseContext();
+Startup.Configure(app, app.Environment);
+await app.RunAsync();

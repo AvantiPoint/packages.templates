@@ -20,19 +20,12 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace NuGetFeedTemplate
 {
-    public class Startup
+    public static class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddNuGetPackagApi(options =>
+            services.AddNuGetPackageApi(options =>
             {
                 switch(options.Options.Storage.Type)
                 {
@@ -50,7 +43,7 @@ namespace NuGetFeedTemplate
             });
 
             services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
+                .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"));
 
             services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
@@ -87,7 +80,7 @@ namespace NuGetFeedTemplate
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -119,7 +112,7 @@ namespace NuGetFeedTemplate
             });
         }
 
-        private async Task OnTokenValidated(TokenValidatedContext ctx)
+        private static async Task OnTokenValidated(TokenValidatedContext ctx)
         {
             var feedContext = ctx.HttpContext.RequestServices.GetRequiredService<FeedContext>();
             var email = ctx.Principal.FindFirstValue("preferred_username");

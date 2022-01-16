@@ -12,8 +12,8 @@ using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Models;
 using NuGetFeedTemplate.Services;
-using SendGrid.Helpers.Mail;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 namespace NuGetFeedTemplate.Pages
 {
@@ -42,10 +42,13 @@ namespace NuGetFeedTemplate.Pages
 
         public bool HasNext { get; set; }
 
-        public async Task OnGet(int page = 1)
+        public async Task OnGet([FromQuery]int page = 1)
         {
             if (!User.Identity.IsAuthenticated)
                 return;
+
+            if (page < 1)
+                page = 1;
 
             CurrentPage = page;
 
@@ -82,7 +85,7 @@ namespace NuGetFeedTemplate.Pages
                 await _dbContext.SaveChangesAsync();
                 await emailService.SendEmail(
                     EmailTemplates.TokenRevoked,
-                    new EmailAddress(token.User.Email, token.User.Name),
+                    new MailAddress(token.User.Email, token.User.Name),
                     "Auth Token Revoked",
                     new TokenAction
                     {
@@ -102,7 +105,7 @@ namespace NuGetFeedTemplate.Pages
                 Description = description,
                 UserEmail = User.FindFirstValue("preferred_username")
             };
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
             if (!await _dbContext.Users.AnyAsync(x => x.Email == authToken.UserEmail))
             {
                 var user = new User
@@ -162,7 +165,7 @@ namespace NuGetFeedTemplate.Pages
             _dbContext.AuthTokens.Add(regeneratedToken);
             await _dbContext.SaveChangesAsync();
 
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
             await emailService.SendEmail(
                 EmailTemplates.TokenRegenerated,
                 to,
@@ -188,7 +191,7 @@ namespace NuGetFeedTemplate.Pages
             _dbContext.AuthTokens.Update(authToken);
             await _dbContext.SaveChangesAsync();
 
-            var to = new EmailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
             await emailService.SendEmail(
                 EmailTemplates.TokenRevoked,
                 to,
@@ -224,12 +227,25 @@ namespace NuGetFeedTemplate.Pages
             if (skip < 0)
                 skip = 0;
 
-            AuthKeys = await _dbContext.AuthTokens
+            var keys = await _dbContext.AuthTokens
                 .Where(x => x.UserEmail == email && x.Revoked == false)
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(10)
-                .ToArrayAsync();
+                .ToListAsync();
+
+            var newKeys = keys.Where(x => x.Created > DateTime.Now.AddMinutes(-1)).ToList();
+            if (newKeys.Any())
+            {
+                var i = 0;
+                newKeys.ForEach(x =>
+                {
+                    keys.Remove(x);
+                    keys.Insert(i++, x);
+                });
+            }
+
+            AuthKeys = keys;
         }
     }
 }
