@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AvantiPoint.Packages.Core;
@@ -13,7 +14,6 @@ using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Models;
-using SendGrid.Helpers.Mail;
 
 namespace NuGetFeedTemplate.Services
 {
@@ -104,7 +104,7 @@ namespace NuGetFeedTemplate.Services
         private async Task SendEmail(string templateId, string subject, string packageId, string version)
         {
             var context = CreatePackageAction(packageId, version);
-            var to = new EmailAddress(User.FindFirstValue(ClaimTypes.Email), User.FindFirstValue(ClaimTypes.Name));
+            var to = new MailAddress(User.FindFirstValue(ClaimTypes.Email), User.FindFirstValue(ClaimTypes.Name));
             await _emailService.SendEmail(templateId, to, subject, context);
         }
 

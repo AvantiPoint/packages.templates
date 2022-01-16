@@ -25,7 +25,7 @@ namespace NuGetFeedTemplate.Pages.Account
 
         public async Task OnGet()
         {
-            Users = _dbContext.Users.ToArray();
+            Users = await _dbContext.Users.ToArrayAsync();
         }
 
         public async Task OnPost([FromForm]User user)

@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using SendGrid.Helpers.Mail;
+﻿using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace NuGetFeedTemplate.Services
 {
     public interface IEmailService
     {
-        Task<bool> SendEmail<T>(string templateName, EmailAddress to, string subject, T context);
+        Task<bool> SendEmail<T>(string templateName, MailAddress to, string subject, T context);
     }
 }
