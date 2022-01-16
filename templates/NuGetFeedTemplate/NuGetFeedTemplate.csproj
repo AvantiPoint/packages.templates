@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>aspnet-NuGetFeedTemplate</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvantiPoint.Packages.Azure" Version="2.0.59" />
-    <PackageReference Include="AvantiPoint.Packages.Database.SqlServer" Version="2.0.59" />
-    <PackageReference Include="AvantiPoint.Packages.Hosting" Version="2.0.59" />
-    <PackageReference Include="Handlebars.Net" Version="2.0.9" />
-    <PackageReference Include="Humanizer" Version="2.11.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.10" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.10">
+    <PackageReference Include="AvantiPoint.Packages.Azure" Version="3.0.8-pre" />
+    <PackageReference Include="AvantiPoint.Packages.Database.SqlServer" Version="3.0.8-pre" />
+    <PackageReference Include="AvantiPoint.Packages.Hosting" Version="3.0.8-pre" />
+    <PackageReference Include="Handlebars.Net" Version="2.0.10" />
+    <PackageReference Include="Humanizer" Version="2.13.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.1" NoWarn="NU1605" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.17.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.17.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="1.22.1" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.22.1" />
     <PackageReference Include="NGraphics" Version="0.6.0-beta2" />
-    <PackageReference Include="SendGrid" Version="9.24.3" />
+    <PackageReference Include="SendGrid" Version="9.25.2" />
   </ItemGroup>
 
 </Project>

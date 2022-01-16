@@ -8,3 +8,6 @@ packages
 !**/Pages/Packages/
 symbols
 *.csproj.user
+node_modules/
+**/wwwroot/lib/**
+package-lock.json
