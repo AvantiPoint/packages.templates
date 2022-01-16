@@ -224,12 +224,25 @@ namespace NuGetFeedTemplate.Pages
             if (skip < 0)
                 skip = 0;
 
-            AuthKeys = await _dbContext.AuthTokens
+            var keys = await _dbContext.AuthTokens
                 .Where(x => x.UserEmail == email && x.Revoked == false)
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(10)
-                .ToArrayAsync();
+                .ToListAsync();
+
+            var newKeys = keys.Where(x => x.Created > DateTime.Now.AddMinutes(-1)).ToList();
+            if (newKeys.Any())
+            {
+                var i = 0;
+                newKeys.ForEach(x =>
+                {
+                    keys.Remove(x);
+                    keys.Insert(i++, x);
+                });
+            }
+
+            AuthKeys = keys;
         }
     }
 }
