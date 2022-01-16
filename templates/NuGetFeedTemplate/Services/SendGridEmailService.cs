@@ -8,7 +8,6 @@ using SendGrid.Helpers.Mail;
 
 namespace NuGetFeedTemplate.Services
 {
-
     public class SendGridEmailService : BaseEmailService
     {
         private ISendGridClient _client { get; }
