@@ -42,10 +42,13 @@ namespace NuGetFeedTemplate.Pages
 
         public bool HasNext { get; set; }
 
-        public async Task OnGet(int page = 1)
+        public async Task OnGet([FromQuery]int page = 1)
         {
             if (!User.Identity.IsAuthenticated)
                 return;
+
+            if (page < 1)
+                page = 1;
 
             CurrentPage = page;
 
