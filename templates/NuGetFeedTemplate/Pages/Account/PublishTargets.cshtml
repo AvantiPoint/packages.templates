@@ -1,4 +1,4 @@
-﻿@page "/account/publish-targets"
+@page "/account/publish-targets"
 @model NuGetFeedTemplate.Pages.Account.PublishTargetsModel
 @{
     var hasTargets = Model.PublishTargets.Any();
@@ -70,9 +70,8 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-6 form-group">
-          <input type="submit" class="btn btn-primary btn-block" value="@submitButton" />
+        <div class="col-sm-3 form-group pt-2">
+          <input type="submit" class="btn btn-primary btn-block w-100" value="@submitButton" />
         </div>
       </div>
     </form>
