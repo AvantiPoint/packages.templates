@@ -1,4 +1,4 @@
-@page "/account/publish-targets"
+﻿@page "/account/publish-targets"
 @model NuGetFeedTemplate.Pages.Account.PublishTargetsModel
 @{
     var hasTargets = Model.PublishTargets.Any();
@@ -66,7 +66,9 @@
         </div>
         <div class="col-sm-1 form-group">
           <label for="Legacy" class="control-label required">Legacy</label>
-          <input name="Legacy" type="checkbox" class="form-control" value="@Model.Target.Legacy" />
+          <div class="form-check form-switch">
+            <input name="Legacy" type="checkbox" class="form-check" value="@Model.Target.Legacy" />
+          </div>
         </div>
       </div>
       <div class="row">
