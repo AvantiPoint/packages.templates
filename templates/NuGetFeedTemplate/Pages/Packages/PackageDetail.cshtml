@@ -11,7 +11,7 @@
 <header>
   <h1>
     <a href="/packages/@package.PackageId">
-        <img src="@package.IconUrl" class="package-icon" width="64" height="64" onError="this.onerror=null;this.src='/images/default-package-icon.svg';" />
+        <img src="@package.IconUrl" class="package-icon" width="64" height="64" onError="this.onerror=null;this.src='/img/default-package-icon.svg';" />
     </a>
     <a href="/packages/@Uri.EscapeDataString(package.PackageId)">@package.PackageId</a>
     <small>by @string.Join(", ", package.Authors)</small>
@@ -19,9 +19,9 @@
   <nav>
     <div class="btn-group" style="display: inline-block">
         <button type="button" class="btn btn-primary version">@package.Version <small>@package.Published.Humanize()</small></button>
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="caret"></span>
-            <span class="sr-only">Toggle Dropdown</span>
+            <span class="visually-hidden">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu">
             @foreach(var mv in package.Versions.Where(x => x.IsListed).OrderByDescending(x => x.Version).GroupBy(x => x.Version.Major))

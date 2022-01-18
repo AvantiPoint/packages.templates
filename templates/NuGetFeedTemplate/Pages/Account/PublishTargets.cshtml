@@ -66,13 +66,14 @@
         </div>
         <div class="col-sm-1 form-group">
           <label for="Legacy" class="control-label required">Legacy</label>
-          <input name="Legacy" type="checkbox" class="form-control" value="@Model.Target.Legacy" />
+          <div class="form-check form-switch">
+            <input name="Legacy" type="checkbox" class="form-check" value="@Model.Target.Legacy" />
+          </div>
         </div>
       </div>
       <div class="row">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-6 form-group">
-          <input type="submit" class="btn btn-primary btn-block" value="@submitButton" />
+        <div class="col-sm-3 form-group pt-2">
+          <input type="submit" class="btn btn-primary btn-block w-100" value="@submitButton" />
         </div>
       </div>
     </form>

@@ -1,44 +1,42 @@
 ﻿using System;
-using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AvantiPoint.Packages.Core;
 using AvantiPoint.Packages.Hosting;
-using AvantiPoint.Packages.Protocol;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using NuGetFeedTemplate.Authentication;
-using NuGetFeedTemplate.Data;
-using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Models;
 
 namespace NuGetFeedTemplate.Services
 {
     public class NuGetFeedActionHandler : INuGetFeedActionHandler
     {
-        private FeedContext _dbContext { get; }
         private IEmailService _emailService { get; }
         private ILogger _logger { get; }
         private ISyndicationService _syndicationService { get; }
+        private IContext _context { get; }
 
         public NuGetFeedActionHandler(
             IHttpContextAccessor contextAccessor,
             IEmailService emailService,
-            FeedContext dbContext,
+            IContext context,
             ISyndicationService syndicationService,
             ILogger<NuGetFeedActionHandler> logger)
         {
             HttpContext = contextAccessor.HttpContext;
-            _dbContext = dbContext;
+            _context = context;
             _emailService = emailService;
             _logger = logger;
             _syndicationService = syndicationService;
 
             UserAgent = HttpContext.Request.Headers.TryGetValue("User-Agent", out var ua) ? ua.ToString() : null;
-            RequestIP = HttpContext.Connection.RemoteIpAddress.ToString();
+            RemoteIp = HttpContext.Connection.RemoteIpAddress;
+            RequestIP = RemoteIp.ToString();
         }
 
         public HttpContext HttpContext { get; }
@@ -46,6 +44,8 @@ namespace NuGetFeedTemplate.Services
         public ClaimsPrincipal User => HttpContext.User;
 
         public string UserAgent { get; }
+
+        public IPAddress RemoteIp { get; }
 
         public string RequestIP { get; }
 
@@ -59,19 +59,8 @@ namespace NuGetFeedTemplate.Services
             try
             {
                 _logger.LogInformation($"{User.Identity.Name} downloaded {packageId}.{version}.nupkg");
-                var download = new PackageDownload
-                {
-                    AuthTokenKey = User.FindFirstValue(FeedClaims.Token),
-                    IPAddress = RequestIP,
-                    PackageId = packageId,
-                    PackageVersion = version,
-                    UserAgent = UserAgent
-                };
 
-                var sendFirstUseEmail = !await _dbContext.Downloads.AnyAsync(x => x.IPAddress == RequestIP && x.AuthTokenKey == download.AuthTokenKey);
-                _dbContext.Downloads.Add(download);
-                await _dbContext.SaveChangesAsync();
-                if(sendFirstUseEmail)
+                if(await _context.PackageDownloads.CountAsync(x => x.RemoteIp == RemoteIp) == 1)
                     await SendEmail(EmailTemplates.TokenFirstUse, "Token used from new IP Address", packageId, version);
             }
             catch (Exception ex)

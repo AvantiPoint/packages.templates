@@ -27,8 +27,6 @@ namespace NuGetFeedTemplate.Data.Models
 
         public User User { get; set; }
 
-        public List<PackageDownload> Downloads { get; set; }
-
         public bool IsValid()
         {
             if (Revoked || DateTimeOffset.Now > Expires)
