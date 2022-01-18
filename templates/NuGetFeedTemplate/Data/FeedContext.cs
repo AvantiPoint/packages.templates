@@ -12,8 +12,6 @@ namespace NuGetFeedTemplate.Data
 
         public DbSet<AuthToken> AuthTokens { get; set; }
 
-        public DbSet<PackageDownload> Downloads { get; set; }
-
         public DbSet<User> Users { get; set; }
 
         public DbSet<PackageGroup> PackageGroups { get; set; }
