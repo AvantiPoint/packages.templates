@@ -19,9 +19,9 @@
   <nav>
     <div class="btn-group" style="display: inline-block">
         <button type="button" class="btn btn-primary version">@package.Version <small>@package.Published.Humanize()</small></button>
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="caret"></span>
-            <span class="sr-only">Toggle Dropdown</span>
+            <span class="visually-hidden">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu">
             @foreach(var mv in package.Versions.Where(x => x.IsListed).OrderByDescending(x => x.Version).GroupBy(x => x.Version.Major))
