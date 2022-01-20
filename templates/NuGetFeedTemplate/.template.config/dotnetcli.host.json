@@ -16,6 +16,10 @@
     "SendGridApiKey": {
       "longName": "sendgrid-api-key",
       "shortName": "sendgrid"
+    },
+    "PostmarkApiKey": {
+      "longName": "postmark-api-key",
+      "shortName": "postmark"
     }
   }
 }
