@@ -5,11 +5,11 @@ on:
     - master
 env:
   AZURE_WEBAPP_NAME: apinhousefeed
-  AZURE_WEBAPP_PACKAGE_PATH: NuGetFeedTemplate/publish
+  AZURE_WEBAPP_PACKAGE_PATH: templates/NuGetFeedTemplate/publish
   AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.apinhousefeed_c7eb }}
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
-  WORKING_DIRECTORY: NuGetFeedTemplate
+  WORKING_DIRECTORY: templates/NuGetFeedTemplate
 jobs:
   build-and-deploy:
     runs-on: windows-latest
