@@ -36,6 +36,12 @@
       "datatype": "text",
       "defaultValue": "",
       "replaces": "ReplaceSendGridApiKey"
+    },
+    "PostmarkApiKey": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "",
+      "replaces": "ReplacePostmarkApiKey"
     }
   },
   "sources": [
