@@ -1,12 +1,10 @@
-﻿using System.Threading.Tasks;
-using NuGet.Versioning;
+﻿using NuGet.Versioning;
 
-namespace NuGetFeedTemplate.Services
+namespace NuGetFeedTemplate.Services;
+
+public interface ISyndicationService
 {
-    public interface ISyndicationService
-    {
-        Task PushToSource(string groupName, string targetName);
-        Task SyndicatePackage(string packageId, NuGetVersion version);
-        Task SyndicateSymbols(string packageId, NuGetVersion version);
-    }
+    Task PushToSource(string groupName, string targetName);
+    Task SyndicatePackage(string packageId, NuGetVersion version);
+    Task SyndicateSymbols(string packageId, NuGetVersion version);
 }

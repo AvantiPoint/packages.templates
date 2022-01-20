@@ -1,9 +1,8 @@
-﻿namespace NuGetFeedTemplate.Models
+﻿namespace NuGetFeedTemplate.Models;
+
+public class WelcomeMessage
 {
-    public class WelcomeMessage
-    {
-        public string SiteName { get; set; }
-        public string Host { get; set; }
-        public string Username { get; set; }
-    }
+    public string SiteName { get; set; }
+    public string Host { get; set; }
+    public string Username { get; set; }
 }

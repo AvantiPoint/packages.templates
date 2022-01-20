@@ -1,10 +1,8 @@
 ﻿using System.Net.Mail;
-using System.Threading.Tasks;
 
-namespace NuGetFeedTemplate.Services
+namespace NuGetFeedTemplate.Services;
+
+public interface IEmailService
 {
-    public interface IEmailService
-    {
-        Task<bool> SendEmail<T>(string templateName, MailAddress to, string subject, T context);
-    }
+    Task<bool> SendEmail<T>(string templateName, MailAddress to, string subject, T context);
 }

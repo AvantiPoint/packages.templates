@@ -1,40 +1,35 @@
-﻿using System;
-using System.Linq;
-using System.Net.Mail;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Net.Mail;
 using NuGetFeedTemplate.Configuration;
 using PostmarkDotNet;
 
-namespace NuGetFeedTemplate.Services
+namespace NuGetFeedTemplate.Services;
+
+public class PostmarkEmailService : BaseEmailService
 {
-    public class PostmarkEmailService : BaseEmailService
+    private PostmarkClient _client { get; }
+
+    public PostmarkEmailService(
+        PostmarkClient client,
+        EmailSettings settings,
+        ITemplateResourceProvider templateProvider,
+        ILogger<PostmarkEmailService> logger)
+        : base(settings, templateProvider, logger)
     {
-        private PostmarkClient _client { get; }
+        _client = client;
+    }
 
-        public PostmarkEmailService(
-            PostmarkClient client,
-            EmailSettings settings,
-            ITemplateResourceProvider templateProvider,
-            ILogger<PostmarkEmailService> logger)
-            : base(settings, templateProvider, logger)
+    protected override async Task<bool> SendInternal(MailMessage message)
+    {
+        var html = message.IsBodyHtml ? message.Body : null;
+        var plainText = message.IsBodyHtml ? null : message.Body;
+        var response = await _client.SendMessageAsync(message.From.ToString(), message.To.First().ToString(), message.Subject, plainText, html);
+
+        if (response.Status != PostmarkStatus.Success)
         {
-            _client = client;
+            Logger.LogWarning($"Postmark responded with an unexpected response code {response.Status} - Error Code: {response.ErrorCode} - Message: {response.Message}");
+            throw new Exception($"Postmark responded with an unexpected response code {response.Status} - Error Code: {response.ErrorCode} - Message: {response.Message}");
         }
 
-        protected override async Task<bool> SendInternal(MailMessage message)
-        {
-            var html = message.IsBodyHtml ? message.Body : null;
-            var plainText = message.IsBodyHtml ? null : message.Body;
-            var response = await _client.SendMessageAsync(message.From.ToString(), message.To.First().ToString(), message.Subject, plainText, html);
-
-            if (response.Status != PostmarkStatus.Success)
-            {
-                Logger.LogWarning($"Postmark responded with an unexpected response code {response.Status} - Error Code: {response.ErrorCode} - Message: {response.Message}");
-                throw new Exception($"Postmark responded with an unexpected response code {response.Status} - Error Code: {response.ErrorCode} - Message: {response.Message}");
-            }
-
-            return true;
-        }
+        return true;
     }
 }
