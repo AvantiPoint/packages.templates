@@ -1,7 +1,6 @@
-﻿namespace NuGetFeedTemplate.Services
+﻿namespace NuGetFeedTemplate.Services;
+
+public interface ITemplateResourceProvider
 {
-    public interface ITemplateResourceProvider
-    {
-        string ReadFile(string fileName);
-    }
+    string ReadFile(string fileName);
 }

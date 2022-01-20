@@ -1,7 +1,6 @@
-﻿namespace NuGetFeedTemplate.Configuration
+﻿namespace NuGetFeedTemplate.Configuration;
+
+public class FeedSettings
 {
-    public class FeedSettings
-    {
-        public string ServerName { get; set; }
-    }
+    public string ServerName { get; set; }
 }

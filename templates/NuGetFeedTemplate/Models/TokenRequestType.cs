@@ -1,9 +1,8 @@
-﻿namespace NuGetFeedTemplate.Models
+﻿namespace NuGetFeedTemplate.Models;
+
+public enum TokenRequestType
 {
-    public enum TokenRequestType
-    {
-        Create,
-        Regenerate,
-        Delete
-    }
+    Create,
+    Regenerate,
+    Delete
 }
