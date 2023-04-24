@@ -11,6 +11,7 @@ using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Services;
+using Serilog;
 
 namespace NuGetFeedTemplate;
 
@@ -18,6 +19,7 @@ public static class Startup
 {
     public static async Task ConfigureAndRunAsync(this WebApplicationBuilder builder)
     {
+        builder.Host.UseSerilog();
         ConfigureServices(builder.Services, builder.Configuration);
         var app = builder.Build();
         try
