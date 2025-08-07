@@ -25,21 +25,21 @@ jobs:
           echo 'Reason: ${{ github.event.inputs.reason }}'
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
             fetch-depth: 0
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '5.0.x'
+          dotnet-version: 9.0.x
 
       - name: Pack Templates
         run: ./pack.ps1 -Version 1.0.$($env:GITHUB_RUN_NUMBER)
 
       - name: NuGet Packages
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: NuGet
           path: Artifacts/
@@ -51,8 +51,8 @@ jobs:
           feedUrl: ${{ secrets.IN_HOUSE_NUGET_FEED }}
           apiKey: ${{ secrets.IN_HOUSE_API_KEY }}
 
-      - name: NuGet Publish
-        if: ${{ github.event.workflow_run.event != 'pull_request' }}
-        uses: dansiegel/publish-nuget@v1.01
-        with:
-          apiKey: ${{ secrets.NUGET_API_KEY }}
+      # - name: NuGet Publish
+      #   if: ${{ github.event.workflow_run.event != 'pull_request' }}
+      #   uses: dansiegel/publish-nuget@v1.01
+      #   with:
+      #     apiKey: ${{ secrets.NUGET_API_KEY }}
