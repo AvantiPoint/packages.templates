@@ -30,9 +30,12 @@ public class NuGetFeedActionHandler : INuGetFeedActionHandler
         _logger = logger;
         _syndicationService = syndicationService;
 
-        UserAgent = HttpContext.Request.Headers.TryGetValue("User-Agent", out var ua) ? ua.ToString() : null;
-        RemoteIp = HttpContext.Connection.RemoteIpAddress;
-        RequestIP = RemoteIp.ToString();
+        if (HttpContext is not null && HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
+        {
+            UserAgent = userAgent.ToString();
+            RemoteIp = contextAccessor.HttpContext.Connection.RemoteIpAddress;
+            RequestIP = RemoteIp?.ToString();
+        }
     }
 
     public HttpContext HttpContext { get; }
