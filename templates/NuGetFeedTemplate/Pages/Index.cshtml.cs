@@ -83,8 +83,17 @@ namespace NuGetFeedTemplate.Pages
             if (!string.IsNullOrEmpty(runtime))
             {
                 // Runtime filter requires packages with platform-specific targets
-                // Map runtime to framework pattern (e.g., "android" -> "-android")
-                effectiveFramework = $"-{runtime.ToLower()}";
+                if (!string.IsNullOrEmpty(framework))
+                {
+                    // Combine framework with runtime: e.g., "net8.0" + "android" -> "net8.0-android"
+                    effectiveFramework = $"{framework}-{runtime.ToLower()}";
+                }
+                else
+                {
+                    // Default to .NET 8.0 (LTS) when only runtime is selected
+                    // This ensures we get platform-specific packages
+                    effectiveFramework = $"net8.0-{runtime.ToLower()}";
+                }
             }
 
             Search = new SearchRequest
