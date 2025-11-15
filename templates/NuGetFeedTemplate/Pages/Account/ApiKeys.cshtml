@@ -47,7 +47,7 @@
       </div>
       <div class="row">
         <div class="col-sm-6 form-group">
-          <input type="submit" class="btn btn-primary btn-block" value="Create" />
+          <input type="submit" class="btn btn-primary w-100" value="Create" />
         </div>
       </div>
     </form>
@@ -56,7 +56,7 @@
 <div class="clearfix">
   <div class="form-section-title">
     <h2>
-      <a role="button" data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
+      <a role="button" data-bs-toggle="collapse" data-bs-target="#manage-container" aria-expanded="true">
         <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
         <span>Manage</span>
       </a>
@@ -159,7 +159,7 @@
 @section Scripts {
   <script type="text/javascript">
     $(document).ready(function () {
-      $('a[data-toggle="collapse"]').click(function () {
+      $('a[data-bs-toggle="collapse"]').click(function () {
         $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
       })
     });
