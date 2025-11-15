@@ -19,6 +19,8 @@ public static class FeedConfigurationExtensions
         options.Services.Configure<EmailSettings>(options.Configuration.GetSection(nameof(EmailSettings)));
         options.Services.AddTransient(sp => sp.GetRequiredService<IOptionsSnapshot<EmailSettings>>().Value);
 
+        options.Services.Configure<VulnerabilityOptions>(options.Configuration.GetSection("Vulnerability"));
+
         return options;
     }
 }

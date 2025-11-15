@@ -1,6 +1,7 @@
 ﻿using AvantiPoint.Packages.Core;
 using AvantiPoint.Packages.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
@@ -17,6 +18,26 @@ public static class ServiceRegistrationExtensions
         options.Services.AddScoped<INuGetFeedActionHandler, NuGetFeedActionHandler>();
         options.Services.AddScoped<ITemplateResourceProvider, LocalTemplateResourceProvider>();
         options.Services.AddScoped<ISyndicationService, SyndicationService>();
+
+        // Vulnerability services
+        options.Services.AddScoped<IVulnerabilityDataSource, DefaultVulnerabilityDataSource>();
+        options.Services.AddScoped<IVulnerabilityService, VulnerabilityService>();
+
+        // Replace the base IServiceIndexService with our extended version
+        // We need to capture the base service first, then replace it
+        var baseServiceDescriptor = options.Services.FirstOrDefault(d => d.ServiceType == typeof(IServiceIndexService));
+        if (baseServiceDescriptor != null)
+        {
+            options.Services.Remove(baseServiceDescriptor);
+            options.Services.AddScoped<APPackagesServiceIndex>();
+            options.Services.AddScoped<IServiceIndexService>(sp => 
+            {
+                var baseService = sp.GetRequiredService<APPackagesServiceIndex>();
+                var urlGenerator = sp.GetRequiredService<IUrlGenerator>();
+                var vulnerabilityOptions = sp.GetRequiredService<IOptions<VulnerabilityOptions>>();
+                return new ExtendedServiceIndexService(baseService, urlGenerator, vulnerabilityOptions);
+            });
+        }
 
 
         options.Services
