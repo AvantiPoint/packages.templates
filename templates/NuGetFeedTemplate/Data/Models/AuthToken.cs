@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
 
 namespace NuGetFeedTemplate.Data.Models
 {
@@ -8,7 +9,7 @@ namespace NuGetFeedTemplate.Data.Models
     {
         public AuthToken()
         {
-             Key = Guid.NewGuid().ToString().Replace("-", string.Empty);
+             Key = GenerateSecureToken();
         }
 
         [MaxLength(32)]
@@ -25,6 +26,8 @@ namespace NuGetFeedTemplate.Data.Models
 
         public bool Revoked { get; set; }
 
+        public bool IsSystemToken { get; set; }
+
         public User User { get; set; }
 
         public bool IsValid()
@@ -33,6 +36,23 @@ namespace NuGetFeedTemplate.Data.Models
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Generates a cryptographically secure random token
+        /// </summary>
+        /// <returns>A 32-character hexadecimal string</returns>
+        private static string GenerateSecureToken()
+        {
+            // Generate 16 random bytes (128 bits) for a secure token
+            byte[] tokenBytes = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(tokenBytes);
+            }
+            
+            // Convert to hexadecimal string (32 characters)
+            return BitConverter.ToString(tokenBytes).Replace("-", string.Empty).ToLower();
         }
     }
 }

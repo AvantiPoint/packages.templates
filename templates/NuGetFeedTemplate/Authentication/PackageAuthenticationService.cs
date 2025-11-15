@@ -55,7 +55,13 @@ public class PackageAuthenticationService : IPackageAuthenticationService
         identity.AddClaim(new Claim(ClaimTypes.Name, token.User.Name));
         identity.AddClaim(new Claim(ClaimTypes.Email, token.User.Email));
         identity.AddClaim(new Claim(FeedClaims.Token, token.Key));
-        identity.AddClaim(new Claim(FeedClaims.TokenDescription, token.Description));
+        
+        // Only add token description for non-system tokens
+        if (!token.IsSystemToken)
+        {
+            identity.AddClaim(new Claim(FeedClaims.TokenDescription, token.Description));
+        }
+        
         identity.AddClaim(new Claim(ClaimTypes.Role, FeedRoles.Consumer));
 
         if (token.User.PackagePublisher)

@@ -116,6 +116,10 @@ namespace NuGetFeedTemplate.Pages
                 };
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
+                
+                // Create a system token for the new user
+                await CreateSystemTokenAsync(user.Email);
+                
                 await emailService.SendEmail(
                     EmailTemplates.WelcomeUser,
                     to,
@@ -213,7 +217,7 @@ namespace NuGetFeedTemplate.Pages
                 CurrentPage = 1;
 
             TotalKeys = await _dbContext.AuthTokens
-                .Where(x => x.UserEmail == User.FindFirstValue("preferred_username"))
+                .Where(x => x.UserEmail == User.FindFirstValue("preferred_username") && x.IsSystemToken == false)
                 .CountAsync();
 
             var lastPage = (int)Math.Ceiling((double)TotalKeys / 10.0);
@@ -228,7 +232,7 @@ namespace NuGetFeedTemplate.Pages
                 skip = 0;
 
             var keys = await _dbContext.AuthTokens
-                .Where(x => x.UserEmail == email && x.Revoked == false)
+                .Where(x => x.UserEmail == email && x.Revoked == false && x.IsSystemToken == false)
                 .OrderByDescending(x => x.Created)
                 .Skip(skip)
                 .Take(10)
@@ -246,6 +250,24 @@ namespace NuGetFeedTemplate.Pages
             }
 
             AuthKeys = keys;
+        }
+
+        /// <summary>
+        /// Creates a system token for a user that expires in 24 hours
+        /// </summary>
+        private async Task CreateSystemTokenAsync(string userEmail)
+        {
+            var systemToken = new AuthToken
+            {
+                Description = "System Token",
+                UserEmail = userEmail,
+                IsSystemToken = true,
+                Created = DateTimeOffset.Now,
+                Expires = DateTimeOffset.Now.AddHours(24)
+            };
+            
+            _dbContext.AuthTokens.Add(systemToken);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
