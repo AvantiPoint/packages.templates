@@ -32,7 +32,10 @@ builder.Services.AddNuGetPackageApi(options =>
 });
 
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
+    .EnableTokenAcquisitionToCallDownstreamApi(new[] { "User.Read", "User.ReadBasic.All" })
+    .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
+    .AddInMemoryTokenCaches();
 
 builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
 {

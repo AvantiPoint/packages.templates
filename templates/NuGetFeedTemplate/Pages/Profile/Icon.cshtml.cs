@@ -1,46 +1,54 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using NuGetFeedTemplate.Services;
 
 namespace NuGetFeedTemplate.Pages.Profile
 {
     public class IconModel : PageModel
     {
-        private const string requestUriFormat = "https://www.gravatar.com/avatar/{0}?s={1}&d={2}";
-        public IActionResult OnGet(string email, int size = 50)
-        {
-            if(User.Identity.IsAuthenticated)
-            {
-                if(string.IsNullOrEmpty(email))
-                    email = User.Identity.Name;
-                return Redirect(GetGravatarUri(email, size));
-            }
+        private readonly IGraphProfilePhotoService _graphProfilePhotoService;
+        private readonly ILogger<IconModel> _logger;
 
-            return Redirect("/img/user.svg");
+        public IconModel(IGraphProfilePhotoService graphProfilePhotoService, ILogger<IconModel> logger)
+        {
+            _graphProfilePhotoService = graphProfilePhotoService;
+            _logger = logger;
         }
 
-        private string GetGravatarUri(string email, int size)
-            => string.Format(requestUriFormat, GetMd5Hash(email), size, "mp");
-
-        static string GetMd5Hash(string str)
+        public async Task<IActionResult> OnGetAsync(string email, int size = 50)
         {
-            using var md5 = MD5.Create();
-            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-
-            var sBuilder = new StringBuilder();
-
-            if (hash != null)
+            if (!User.Identity.IsAuthenticated)
             {
-                for (var i = 0; i < hash.Length; i++)
-                    sBuilder.Append(hash[i].ToString("x2"));
+                return Redirect("/img/user.svg");
             }
 
-            return sBuilder.ToString();
+            try
+            {
+                Stream photoStream;
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    // Get current user's photo
+                    photoStream = await _graphProfilePhotoService.GetCurrentUserPhotoAsync();
+                }
+                else
+                {
+                    // Get specific user's photo by email
+                    photoStream = await _graphProfilePhotoService.GetUserPhotoAsync(email);
+                }
+
+                if (photoStream != null)
+                {
+                    return File(photoStream, "image/jpeg");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to retrieve profile photo from Microsoft Graph");
+            }
+
+            // Fallback to default user image
+            return Redirect("/img/user.svg");
         }
     }
 }

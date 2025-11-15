@@ -17,6 +17,7 @@ public static class ServiceRegistrationExtensions
         options.Services.AddScoped<INuGetFeedActionHandler, NuGetFeedActionHandler>();
         options.Services.AddScoped<ITemplateResourceProvider, LocalTemplateResourceProvider>();
         options.Services.AddScoped<ISyndicationService, SyndicationService>();
+        options.Services.AddScoped<IGraphProfilePhotoService, GraphProfilePhotoService>();
 
 
         options.Services
