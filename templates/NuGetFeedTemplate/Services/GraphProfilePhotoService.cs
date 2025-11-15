@@ -30,8 +30,17 @@ public class GraphProfilePhotoService : IGraphProfilePhotoService
 
     public async Task<Stream> GetUserPhotoAsync(string email)
     {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            _logger.LogWarning("Empty email provided for user photo lookup");
+            return null;
+        }
+
         try
         {
+            // Sanitize email to prevent injection
+            email = email.Replace("'", "''");
+
             // Try to find the user by email
             var users = await _graphServiceClient.Users.GetAsync(requestConfig =>
             {
