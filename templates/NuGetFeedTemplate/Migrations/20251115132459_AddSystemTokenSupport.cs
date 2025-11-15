@@ -14,21 +14,6 @@ namespace NuGetFeedTemplate.Migrations
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
-
-            // Create a system token for each existing user that expires in 24 hours
-            migrationBuilder.Sql(@"
-                INSERT INTO AuthTokens (Key, Description, UserEmail, Created, Expires, Revoked, IsSystemToken)
-                SELECT 
-                    LOWER(SUBSTRING(CONVERT(VARCHAR(64), HASHBYTES('SHA256', CONCAT(Email, CONVERT(VARCHAR(36), NEWID()))), 2), 1, 32)),
-                    'System Token',
-                    Email,
-                    SYSDATETIMEOFFSET(),
-                    DATEADD(hour, 24, SYSDATETIMEOFFSET()),
-                    0,
-                    1
-                FROM Users
-                WHERE Email NOT IN (SELECT DISTINCT UserEmail FROM AuthTokens WHERE IsSystemToken = 1 AND UserEmail IS NOT NULL)
-            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
