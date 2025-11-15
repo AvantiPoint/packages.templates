@@ -19,7 +19,7 @@ namespace NuGetFeedTemplate.Migrations
             migrationBuilder.Sql(@"
                 INSERT INTO AuthTokens (Key, Description, UserEmail, Created, Expires, Revoked, IsSystemToken)
                 SELECT 
-                    LOWER(CONVERT(VARCHAR(32), HASHBYTES('SHA1', CONCAT(Email, NEWID())), 2)),
+                    LOWER(SUBSTRING(CONVERT(VARCHAR(64), HASHBYTES('SHA256', CONCAT(Email, CONVERT(VARCHAR(36), NEWID()))), 2), 1, 32)),
                     'System Token',
                     Email,
                     SYSDATETIMEOFFSET(),
