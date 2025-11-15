@@ -35,6 +35,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
 
 builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
 {
+    options.Prompt = "select_account";
     options.Events = new OpenIdConnectEvents
     {
         OnTokenValidated = OnTokenValidated
