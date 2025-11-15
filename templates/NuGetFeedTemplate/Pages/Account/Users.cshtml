@@ -57,7 +57,19 @@
             <td class="px-3">
               @if(User.FindFirstValue(ClaimTypes.Email) != user.Email)
               {
-                <!-- TODO: Add Revoke Access -->
+                <br />
+                <form method="post" class="form-inline">
+                  <input type="hidden" name="Email" value="@user.Email" />
+                  <input type="hidden" name="IsRevoked" value="@((!user.IsRevoked).ToString())" />
+                  @if(user.IsRevoked)
+                  {
+                    <button type="submit" class="btn btn-success">Restore</button>
+                  }
+                  else
+                  {
+                    <button type="submit" class="btn btn-danger">Revoke</button>
+                  }
+              </form>
               }
             </td>
           </tr>

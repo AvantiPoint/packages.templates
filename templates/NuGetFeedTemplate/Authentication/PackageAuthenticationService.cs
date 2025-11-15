@@ -33,7 +33,7 @@ public class PackageAuthenticationService : IPackageAuthenticationService
     {
         var authToken = await _dbContext.AuthTokens
             .Include(x => x.User)
-            .FirstOrDefaultAsync(x => x.Key == apiKey && x.Revoked == false && x.User.PackagePublisher == true);
+            .FirstOrDefaultAsync(x => x.Key == apiKey && x.Revoked == false && x.User.PackagePublisher == true && x.User.IsRevoked == false);
         return CreateResult(authToken, false);
     }
 
@@ -41,7 +41,7 @@ public class PackageAuthenticationService : IPackageAuthenticationService
     {
         var authToken = await _dbContext.AuthTokens
             .Include(x => x.User)
-            .FirstOrDefaultAsync(x => x.Key == token && x.User.Email == username && x.Revoked == false);
+            .FirstOrDefaultAsync(x => x.Key == token && x.User.Email == username && x.Revoked == false && x.User.IsRevoked == false);
 
         return CreateResult(authToken, true);
     }
