@@ -12,8 +12,8 @@ using NuGetFeedTemplate.Data;
 namespace NuGetFeedTemplate.Migrations
 {
     [DbContext(typeof(FeedContext))]
-    [Migration("20251115181000_AddTokenExpirationNotifications")]
-    partial class AddTokenExpirationNotifications
+    [Migration("20251115181000_AddTokenNotifications")]
+    partial class AddTokenNotifications
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,7 +148,7 @@ namespace NuGetFeedTemplate.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("NuGetFeedTemplate.Data.Models.TokenExpirationNotification", b =>
+            modelBuilder.Entity("NuGetFeedTemplate.Data.Models.TokenNotification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -170,7 +170,7 @@ namespace NuGetFeedTemplate.Migrations
 
                     b.HasIndex("TokenKey");
 
-                    b.ToTable("TokenExpirationNotifications");
+                    b.ToTable("TokenNotifications");
                 });
 
             modelBuilder.Entity("NuGetFeedTemplate.Data.Models.AuthToken", b =>
@@ -182,7 +182,7 @@ namespace NuGetFeedTemplate.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("NuGetFeedTemplate.Data.Models.TokenExpirationNotification", b =>
+            modelBuilder.Entity("NuGetFeedTemplate.Data.Models.TokenNotification", b =>
                 {
                     b.HasOne("NuGetFeedTemplate.Data.Models.AuthToken", "Token")
                         .WithMany()

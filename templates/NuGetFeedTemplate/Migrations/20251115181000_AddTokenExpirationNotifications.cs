@@ -8,7 +8,7 @@ namespace NuGetFeedTemplate.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "TokenExpirationNotifications",
+                name: "TokenNotifications",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -19,9 +19,9 @@ namespace NuGetFeedTemplate.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TokenExpirationNotifications", x => x.Id);
+                    table.PrimaryKey("PK_TokenNotifications", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TokenExpirationNotifications_AuthTokens_TokenKey",
+                        name: "FK_TokenNotifications_AuthTokens_TokenKey",
                         column: x => x.TokenKey,
                         principalTable: "AuthTokens",
                         principalColumn: "Key",
@@ -29,15 +29,15 @@ namespace NuGetFeedTemplate.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_TokenExpirationNotifications_TokenKey",
-                table: "TokenExpirationNotifications",
+                name: "IX_TokenNotifications_TokenKey",
+                table: "TokenNotifications",
                 column: "TokenKey");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "TokenExpirationNotifications");
+                name: "TokenNotifications");
         }
     }
 }

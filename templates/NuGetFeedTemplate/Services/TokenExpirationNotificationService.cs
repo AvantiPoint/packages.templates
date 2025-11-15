@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using Cronos;
 using Microsoft.EntityFrameworkCore;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
@@ -10,7 +11,7 @@ public class TokenExpirationNotificationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<TokenExpirationNotificationService> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
+    private readonly CronExpression _cronExpression;
 
     public TokenExpirationNotificationService(
         IServiceProvider serviceProvider,
@@ -18,6 +19,8 @@ public class TokenExpirationNotificationService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        // Run daily at 6am UTC
+        _cronExpression = CronExpression.Parse("0 6 * * *");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,16 +29,33 @@ public class TokenExpirationNotificationService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            try
-            {
-                await CheckTokenExpirations(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while checking token expirations.");
-            }
+            var now = DateTimeOffset.UtcNow;
+            var nextRun = _cronExpression.GetNextOccurrence(now, TimeZoneInfo.Utc);
 
-            await Task.Delay(_checkInterval, stoppingToken);
+            if (nextRun.HasValue)
+            {
+                var delay = nextRun.Value - now;
+                _logger.LogInformation($"Next token expiration check scheduled for {nextRun.Value:yyyy-MM-dd HH:mm:ss} UTC");
+
+                try
+                {
+                    await Task.Delay(delay, stoppingToken);
+                    
+                    if (!stoppingToken.IsCancellationRequested)
+                    {
+                        await CheckTokenExpirations(stoppingToken);
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Expected when service is stopping
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while checking token expirations.");
+                }
+            }
         }
 
         _logger.LogInformation("Token Expiration Notification Service is stopping.");
@@ -67,20 +87,20 @@ public class TokenExpirationNotificationService : BackgroundService
                 // Check if token has expired
                 if (token.Expires <= now)
                 {
-                    await SendExpirationNotification(token, "Expired", EmailTemplates.TokenExpired, 
-                        "Token Expired", context, emailService, cancellationToken);
+                    await SendExpirationNotification(token, TokenNotificationType.TokenExpired, 
+                        EmailTemplates.TokenExpired, "Token Expired", context, emailService, cancellationToken);
                 }
                 // Check if token expires in 3 days
                 else if (token.Expires <= threeDaysFromNow && token.Expires > now)
                 {
-                    await SendExpirationNotification(token, "3Days", EmailTemplates.TokenExpiring3Days,
-                        "Token Expiring in 3 Days", context, emailService, cancellationToken);
+                    await SendExpirationNotification(token, TokenNotificationType.TokenExpiring3Days,
+                        EmailTemplates.TokenExpiring3Days, "Token Expiring in 3 Days", context, emailService, cancellationToken);
                 }
                 // Check if token expires in 7 days
                 else if (token.Expires <= sevenDaysFromNow && token.Expires > threeDaysFromNow)
                 {
-                    await SendExpirationNotification(token, "7Days", EmailTemplates.TokenExpiring7Days,
-                        "Token Expiring in 7 Days", context, emailService, cancellationToken);
+                    await SendExpirationNotification(token, TokenNotificationType.TokenExpiring7Days,
+                        EmailTemplates.TokenExpiring7Days, "Token Expiring in 7 Days", context, emailService, cancellationToken);
                 }
             }
             catch (Exception ex)
@@ -92,16 +112,18 @@ public class TokenExpirationNotificationService : BackgroundService
 
     private async Task SendExpirationNotification(
         AuthToken token,
-        string notificationType,
+        TokenNotificationType notificationType,
         string templateName,
         string subject,
         FeedContext context,
         IEmailService emailService,
         CancellationToken cancellationToken)
     {
+        var notificationTypeString = notificationType.ToString();
+        
         // Check if notification was already sent
-        var alreadySent = await context.TokenExpirationNotifications
-            .AnyAsync(n => n.TokenKey == token.Key && n.NotificationType == notificationType, cancellationToken);
+        var alreadySent = await context.TokenNotifications
+            .AnyAsync(n => n.TokenKey == token.Key && n.NotificationType == notificationTypeString, cancellationToken);
 
         if (alreadySent)
         {
@@ -124,14 +146,14 @@ public class TokenExpirationNotificationService : BackgroundService
         if (success)
         {
             // Record that notification was sent
-            var notification = new TokenExpirationNotification
+            var notification = new TokenNotification
             {
                 TokenKey = token.Key,
-                NotificationType = notificationType,
+                NotificationTypeEnum = notificationType,
                 SentAt = DateTimeOffset.Now
             };
 
-            context.TokenExpirationNotifications.Add(notification);
+            context.TokenNotifications.Add(notification);
             await context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation($"Sent '{notificationType}' notification for token {token.Key} to {token.User.Email}");
