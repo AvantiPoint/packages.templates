@@ -9,4 +9,7 @@ public static class EmailTemplates
     public const string TokenCreated = "token-created.html";
     public const string TokenRevoked = "token-revoked.html";
     public const string TokenRegenerated = "token-regenerated.html";
+    public const string TokenExpiring7Days = "token-expiring-7days.html";
+    public const string TokenExpiring3Days = "token-expiring-3days.html";
+    public const string TokenExpired = "token-expired.html";
 }
