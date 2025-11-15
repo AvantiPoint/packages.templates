@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
@@ -122,9 +123,32 @@ static async Task OnTokenValidated(TokenValidatedContext ctx)
         await feedContext.SaveChangesAsync();
     }
 
+    // Get or create a valid system token for the user
+    var systemToken = await feedContext.AuthTokens
+        .FirstOrDefaultAsync(x => x.UserEmail == email && x.IsSystemToken == true && x.Revoked == false && x.Expires > DateTimeOffset.Now);
+    
+    if (systemToken is null)
+    {
+        // Create a new system token that expires in 24 hours
+        systemToken = new AuthToken
+        {
+            Description = "System Token",
+            UserEmail = email,
+            IsSystemToken = true,
+            Created = DateTimeOffset.Now,
+            Expires = DateTimeOffset.Now.AddHours(24)
+        };
+        feedContext.AuthTokens.Add(systemToken);
+        await feedContext.SaveChangesAsync();
+    }
+
+    var claimsIdentity = ctx.Principal.Identity as ClaimsIdentity;
+    
+    // Add the system token as a claim
+    claimsIdentity.AddClaim(new Claim(FeedClaims.SystemToken, systemToken.Key));
+
     if (user.PackagePublisher)
     {
-        var claimsIdentity = ctx.Principal.Identity as ClaimsIdentity;
         claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
     }
 }
