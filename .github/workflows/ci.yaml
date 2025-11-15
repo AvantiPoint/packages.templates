@@ -34,6 +34,12 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Build Solution
+        run: dotnet build templates/NuGetFeedTemplate.sln
+
+      - name: Run Tests
+        run: dotnet test templates/NuGetFeedTemplate.sln --no-build --logger "console;verbosity=normal"
+
       - name: Pack Templates
         run: ./pack.ps1 -Version 1.0.$($env:GITHUB_RUN_NUMBER)
 
