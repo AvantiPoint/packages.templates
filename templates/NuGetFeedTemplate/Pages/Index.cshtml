@@ -23,6 +23,7 @@
           <label for="framework" class="form-label">Framework</label>
           <select name="framework" id="framework" class="form-control" onchange="document.getElementById('searchForm').submit()">
             <option value="">All Frameworks</option>
+            <option value="net10.0" @(Model.SelectedFramework == "net10.0" ? "selected" : "")>.NET 10.0</option>
             <option value="net9.0" @(Model.SelectedFramework == "net9.0" ? "selected" : "")>.NET 9.0</option>
             <option value="net8.0" @(Model.SelectedFramework == "net8.0" ? "selected" : "")>.NET 8.0</option>
             <option value="net7.0" @(Model.SelectedFramework == "net7.0" ? "selected" : "")>.NET 7.0</option>
@@ -43,6 +44,8 @@
             <option value="tvos" @(Model.SelectedRuntime == "tvos" ? "selected" : "")>tvOS</option>
             <option value="windows" @(Model.SelectedRuntime == "windows" ? "selected" : "")>Windows</option>
             <option value="tizen" @(Model.SelectedRuntime == "tizen" ? "selected" : "")>Tizen</option>
+            <option value="desktop" @(Model.SelectedRuntime == "desktop" ? "selected" : "")>Desktop (Uno Platform)</option>
+            <option value="browserwasm" @(Model.SelectedRuntime == "browserwasm" ? "selected" : "")>Browser WebAssembly (Uno Platform)</option>
           </select>
           <small class="form-text text-muted">Platform-specific packages only</small>
         </div>
