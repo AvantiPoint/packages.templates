@@ -11,3 +11,6 @@ symbols
 node_modules/
 **/wwwroot/lib/**
 package-lock.json
+
+# MkDocs build output
+site/

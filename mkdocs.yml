@@ -1,0 +1,70 @@
+site_name: AvantiPoint Packages Templates
+site_description: Documentation for the AvantiPoint NuGet Feed Template
+site_author: AvantiPoint
+repo_url: https://github.com/AvantiPoint/packages.templates
+repo_name: AvantiPoint/packages.templates
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Configuration: getting-started/configuration.md
+  - Features:
+    - Overview: features/overview.md
+    - Authentication: features/authentication.md
+    - Email Notifications: features/email-notifications.md
+    - Package Syndication: features/package-syndication.md
+    - User Management: features/user-management.md
+  - Hosting:
+    - Azure: hosting/azure.md
+    - Azure AD Integration: hosting/azure-ad.md
+    - Storage Options: hosting/storage.md
+  - Advanced:
+    - Customization: advanced/customization.md
+    - Extensibility: advanced/extensibility.md
+    - Troubleshooting: advanced/troubleshooting.md
+  - Reference:
+    - Template Parameters: reference/template-parameters.md
+    - Configuration Options: reference/configuration-options.md

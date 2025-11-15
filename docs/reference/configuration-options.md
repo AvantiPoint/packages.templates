@@ -1,0 +1,292 @@
+# Configuration Options Reference
+
+Complete reference for all configuration options in the generated NuGet feed application.
+
+## Configuration Sections
+
+### AzureAd
+
+Azure Active Directory authentication settings.
+
+```json
+{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "yourcompany.com",
+    "TenantId": "00000000-0000-0000-0000-000000000000",
+    "ClientId": "11111111-1111-1111-1111-111111111111",
+    "CallbackPath": "/signin-oidc"
+  }
+}
+```
+
+| Setting | Type | Required | Description |
+|---------|------|----------|-------------|
+| `Instance` | string | Yes | Azure AD endpoint URL |
+| `Domain` | string | Yes | Organization's Azure AD domain |
+| `TenantId` | string | Yes | Azure AD tenant/directory ID |
+| `ClientId` | string | Yes | Application (client) ID |
+| `CallbackPath` | string | Yes | OAuth callback path |
+
+### ConnectionStrings
+
+Database connection configuration.
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=NuGetFeed;Trusted_Connection=True;MultipleActiveResultSets=true"
+  }
+}
+```
+
+| Setting | Type | Required | Description |
+|---------|------|----------|-------------|
+| `DefaultConnection` | string | Yes | SQL Server connection string |
+
+**Connection String Formats:**
+
+- LocalDB: `Server=(localdb)\\mssqllocaldb;Database=MyFeed;Trusted_Connection=True;MultipleActiveResultSets=true`
+- SQL Server: `Server=myserver;Database=MyFeed;Trusted_Connection=True;MultipleActiveResultSets=true`
+- SQL Auth: `Server=myserver;Database=MyFeed;User Id=user;Password=pwd;MultipleActiveResultSets=true`
+- Azure SQL: `Server=tcp:server.database.windows.net,1433;Database=MyFeed;User ID=user;Password=pwd;Encrypt=True;`
+
+### Feed
+
+Feed behavior configuration.
+
+```json
+{
+  "Feed": {
+    "ServerName": "My Company NuGet Feed",
+    "AllowAnonymousAccess": false,
+    "PackageDeletionBehavior": "Unlist",
+    "EnablePackageOverwrite": false
+  }
+}
+```
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ServerName` | string | Required | Display name for the feed |
+| `AllowAnonymousAccess` | bool | `false` | Allow unauthenticated downloads |
+| `PackageDeletionBehavior` | enum | `Unlist` | `Unlist` or `HardDelete` |
+| `EnablePackageOverwrite` | bool | `false` | Allow re-uploading same version |
+
+### Storage
+
+Package storage configuration.
+
+**File System Storage:**
+```json
+{
+  "Storage": {
+    "Type": "FileSystem",
+    "Path": "Packages"
+  }
+}
+```
+
+**Azure Blob Storage:**
+```json
+{
+  "Storage": {
+    "Type": "AzureBlobStorage",
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=account;AccountKey=key;EndpointSuffix=core.windows.net",
+    "Container": "packages"
+  }
+}
+```
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `Type` | enum | `FileSystem` | `FileSystem` or `AzureBlobStorage` |
+| `Path` | string | `Packages` | Local path for file storage |
+| `ConnectionString` | string | - | Azure Storage connection string |
+| `Container` | string | `packages` | Blob container name |
+
+### Email
+
+Email notification configuration.
+
+```json
+{
+  "Email": {
+    "Enabled": true,
+    "FromAddress": "noreply@yourcompany.com",
+    "FromName": "NuGet Feed",
+    "Provider": "SendGrid",
+    "SendGrid": {
+      "ApiKey": "SG.your-api-key"
+    },
+    "Postmark": {
+      "ApiKey": "your-postmark-key"
+    }
+  }
+}
+```
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `Enabled` | bool | `true` | Enable email notifications |
+| `FromAddress` | string | Required | Sender email address |
+| `FromName` | string | Required | Sender display name |
+| `Provider` | enum | `None` | `SendGrid`, `Postmark`, or `None` |
+| `SendGrid.ApiKey` | string | - | SendGrid API key |
+| `Postmark.ApiKey` | string | - | Postmark API token |
+
+### Syndication
+
+Package syndication configuration.
+
+```json
+{
+  "Syndication": {
+    "Enabled": true
+  }
+}
+```
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `Enabled` | bool | `false` | Enable package syndication |
+
+Syndication targets are configured through the web UI.
+
+### Logging
+
+Logging configuration.
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    }
+  }
+}
+```
+
+| Level | Description |
+|-------|-------------|
+| `Trace` | Most detailed logging |
+| `Debug` | Debugging information |
+| `Information` | General information |
+| `Warning` | Warning messages |
+| `Error` | Error messages |
+| `Critical` | Critical failures |
+| `None` | Disable logging |
+
+## Environment-Specific Configuration
+
+### Development
+
+`appsettings.Development.json` - Generated by template with parameter values.
+
+### Production
+
+`appsettings.Production.json` - Create manually for production settings.
+
+### User Secrets
+
+For development, use User Secrets for sensitive data:
+
+```bash
+dotnet user-secrets init
+dotnet user-secrets set "AzureAd:ClientId" "value"
+dotnet user-secrets set "Email:SendGrid:ApiKey" "value"
+```
+
+### Environment Variables
+
+Format: `Section__Subsection__Setting`
+
+```bash
+export AzureAd__TenantId="value"
+export Email__SendGrid__ApiKey="value"
+export ConnectionStrings__DefaultConnection="value"
+```
+
+### Azure App Service
+
+Configure in **Configuration** → **Application settings**:
+
+- `AzureAd__TenantId`
+- `AzureAd__ClientId`
+- `Email__SendGrid__ApiKey`
+- `ConnectionStrings__DefaultConnection`
+
+## Advanced Settings
+
+### Request Size Limits
+
+Configured in `Program.cs` for large package uploads:
+
+```csharp
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = int.MaxValue;
+});
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = int.MaxValue;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+```
+
+### HTTPS Redirection
+
+Enabled by default in `Program.cs`:
+
+```csharp
+app.UseHttpsRedirection();
+```
+
+### Database Migrations
+
+Automatic migration on startup (configured by default):
+
+```csharp
+await app.InitializeDatabaseContext();
+```
+
+## Configuration Validation
+
+Implement configuration validation:
+
+```csharp
+builder.Services.AddOptions<EmailSettings>()
+    .Bind(builder.Configuration.GetSection("Email"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+```
+
+With validation attributes:
+
+```csharp
+public class EmailSettings
+{
+    [Required]
+    [EmailAddress]
+    public string FromAddress { get; set; }
+    
+    [Required]
+    public string FromName { get; set; }
+}
+```
+
+## See Also
+
+- [Getting Started Configuration](../getting-started/configuration.md)
+- [Template Parameters](template-parameters.md)
+- [Azure AD Setup](../hosting/azure-ad.md)
