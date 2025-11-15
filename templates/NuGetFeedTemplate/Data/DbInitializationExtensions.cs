@@ -15,14 +15,16 @@ public static class DbInitializationExtensions
         using var feedContext = scope.ServiceProvider.GetRequiredService<FeedContext>();
         using var sqlContext = scope.ServiceProvider.GetRequiredService<SqlServerContext>();
 
-        await ApplyMigrations(feedContext, "FeedContext", logger);
-        await ApplyMigrations(sqlContext, "SqlServerContext", logger);
+        await ApplyMigrations(feedContext, logger);
+        await ApplyMigrations(sqlContext, logger);
 
         logger.LogInformation("Database initialization complete.");
     }
 
-    private static async Task ApplyMigrations(DbContext context, string contextName, ILogger logger)
+    private static async Task ApplyMigrations(DbContext context, ILogger logger)
     {
+        var contextName = context.GetType().Name;
+        
         try
         {
             logger.LogInformation("Checking for pending migrations in {ContextName}...", contextName);
