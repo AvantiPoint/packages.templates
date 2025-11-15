@@ -67,13 +67,13 @@
         <div class="col-sm-1 form-group">
           <label for="Legacy" class="control-label required">Legacy</label>
           <div class="form-check form-switch">
-            <input name="Legacy" type="checkbox" class="form-check" value="@Model.Target.Legacy" />
+            <input name="Legacy" type="checkbox" class="form-check-input" value="@Model.Target.Legacy" />
           </div>
         </div>
       </div>
       <div class="row">
         <div class="col-sm-3 form-group pt-2">
-          <input type="submit" class="btn btn-primary btn-block w-100" value="@submitButton" />
+          <input type="submit" class="btn btn-primary w-100" value="@submitButton" />
         </div>
       </div>
     </form>
@@ -85,7 +85,7 @@
 <div class="clearfix">
   <div class="form-section-title">
     <h2>
-      <a data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
+      <a data-bs-toggle="collapse" data-bs-target="#manage-container" aria-expanded="true">
         <i class="ms-Icon ms-Icon--ChevronDown ms-font-m" aria-hidden="true"></i>
       </a>
       <span>Manage</span>
@@ -120,7 +120,7 @@
 @section Scripts {
   <script type="text/javascript">
     $(document).ready(function () {
-      $('a[data-toggle="collapse"]').click(function () {
+      $('a[data-bs-toggle="collapse"]').click(function () {
         $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
       })
     });

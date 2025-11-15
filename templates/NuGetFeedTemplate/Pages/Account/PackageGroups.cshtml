@@ -38,7 +38,7 @@
       </div>
       <div class="row mt-2">
         <div class="col-sm-6 form-group">
-          <input type="submit" class="btn btn-primary btn-block" value="Create" />
+          <input type="submit" class="btn btn-primary w-100" value="Create" />
         </div>
       </div>
     </form>
@@ -50,7 +50,7 @@
 <div class="clearfix">
   <div class="form-section-title">
     <h2>
-      <a data-toggle="collapse" data-target="#manage-container" aria-expanded="true">
+      <a data-bs-toggle="collapse" data-bs-target="#manage-container" aria-expanded="true">
         <i class="ms-Icon ms-Icon--ChevronDown ms-font-m" aria-hidden="true"></i>
       </a>
       <span>Manage</span>
@@ -67,7 +67,7 @@
         <form action="/api/account/package-groups/@group.Name/push-latest" method="post" class="form-inline">
           <input type="hidden" name="group" value="@group.Name" />
           <div class="form-group">
-            <label for="feed" class="mr-3">Push Latest</label>
+            <label for="feed" class="me-3">Push Latest</label>
             <select name="feed" class="form-control">
               <option selected="selected">Please Select</option>
               @foreach(var feed in Model.PublishTargets)
@@ -76,7 +76,7 @@
               }
             </select>
           </div>
-          <div class="form-group ml-3">
+          <div class="form-group ms-3">
             <input type="submit" class="form-control btn btn-primary my-2" value="Push" />
           </div>
         </form>
@@ -160,7 +160,7 @@
 @section Scripts {
   <script type="text/javascript">
     $(document).ready(function () {
-      $('a[data-toggle="collapse"]').click(function () {
+      $('a[data-bs-toggle="collapse"]').click(function () {
         $(this).find('i.ms-Icon').toggleClass('ms-Icon--ChevronRight ms-Icon--ChevronDown');
       })
     });
