@@ -4,6 +4,17 @@ The following is a dotnet template for a basic NuGet Package feed using AvantiPo
 
 In addition to this the NuGet Package Authentication, and Callback Handlers are pre-wired up, and come with an Email Service and basic html templates. This will send an email to your users to welcome them when they create their first token, along with any time they create or revoke a token, they have uploaded a package or symbols package, or download a package from a new IP Address.
 
+## Features
+
+- **Azure Active Directory Integration**: Secure authentication using Azure AD
+- **Token Management**: Users can create and manage their own API keys
+- **Email Notifications**: Automated emails for important feed events
+- **Package Syndication**: Support for syndicating packages to other feeds
+- **Vulnerability Support**: First-class support for NuGet VulnerabilityInfo v3 API (see [VULNERABILITY_README.md](templates/NuGetFeedTemplate/VULNERABILITY_README.md))
+- **Multiple Storage Options**: File system or Azure Blob Storage
+
+## Setup Requirements
+
 You will need:
 
 1. Create a new Application in Azure Active Directory. Be sure to add Access and ID tokens after creating the application in the Azure Portal.
