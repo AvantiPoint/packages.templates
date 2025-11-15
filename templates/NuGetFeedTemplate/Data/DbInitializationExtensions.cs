@@ -1,36 +1,56 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using AvantiPoint.Packages.Database.SqlServer;
 
-namespace NuGetFeedTemplate.Data
+namespace NuGetFeedTemplate.Data;
+
+public static class DbInitializationExtensions
 {
-    public static class DbInitializationExtensions
+    public static async Task InitializeDatabaseContext(this WebApplication app)
     {
-        public static async Task InitializeDatabaseContext(this IHost host)
-        {
-            using var scope = host.Services.CreateScope();
-            using var feedContext = scope.ServiceProvider.GetRequiredService<FeedContext>();
-            using var sqlContext = scope.ServiceProvider.GetRequiredService<SqlServerContext>();
+        var logger = app.Services.GetRequiredService<ILogger<WebApplication>>();
+        logger.LogInformation("Initializing database contexts...");
 
-            await ApplyMigrations(feedContext);
-            await ApplyMigrations(sqlContext);
+        using var scope = app.Services.CreateScope();
+        using var feedContext = scope.ServiceProvider.GetRequiredService<FeedContext>();
+        using var sqlContext = scope.ServiceProvider.GetRequiredService<SqlServerContext>();
+
+        await ApplyMigrations(feedContext, logger);
+        await ApplyMigrations(sqlContext, logger);
+
+        logger.LogInformation("Database initialization complete.");
+    }
+
+    private static async Task ApplyMigrations(DbContext context, ILogger logger)
+    {
+        var contextName = context.GetType().Name;
+        
+        try
+        {
+            logger.LogInformation("Checking for pending migrations in {ContextName}...", contextName);
+            var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
+            
+            if (pendingMigrations.Any())
+            {
+                logger.LogInformation("Found {Count} pending migration(s) in {ContextName}:", pendingMigrations.Count, contextName);
+                foreach (var migration in pendingMigrations)
+                {
+                    logger.LogInformation("  - {MigrationName}", migration);
+                }
+                
+                logger.LogInformation("Applying migrations to {ContextName}...", contextName);
+                await context.Database.MigrateAsync();
+                logger.LogInformation("Migrations applied successfully to {ContextName}.", contextName);
+            }
+            else
+            {
+                logger.LogInformation("No pending migrations for {ContextName}.", contextName);
+            }
         }
-
-        private static async Task ApplyMigrations(DbContext context)
+        catch (Exception ex)
         {
-            try
-            {
-                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-                if (pendingMigrations.Any())
-                    await context.Database.MigrateAsync();
-            }
-            catch (System.Exception)
-            {
-
-            }
+            logger.LogError(ex, "An error occurred while applying migrations to {ContextName}.", contextName);
+            throw;
         }
     }
 }
