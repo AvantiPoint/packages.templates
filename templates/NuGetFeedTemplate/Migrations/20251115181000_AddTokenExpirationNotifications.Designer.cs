@@ -13,7 +13,7 @@ namespace NuGetFeedTemplate.Migrations
 {
     [DbContext(typeof(FeedContext))]
     [Migration("20251115181000_AddTokenNotifications")]
-    partial class AddTokenNotifications
+    partial class AddTokenExpirationNotifications
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
