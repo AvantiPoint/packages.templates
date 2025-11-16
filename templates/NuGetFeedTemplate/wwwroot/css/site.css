@@ -447,3 +447,84 @@ a.text-toggle h4 {
     border-color: #1b6ec2;
     box-shadow: 0 0 0 0.2rem rgba(27, 110, 194, 0.25);
 }
+
+/* Package Installation Section Styles */
+.package-install-section {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.package-install-section .nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.package-install-section .nav-tabs .nav-link {
+    color: #666;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    padding: 0.5rem 1rem;
+    margin-bottom: -2px;
+}
+
+.package-install-section .nav-tabs .nav-link:hover {
+    border-color: transparent;
+    border-bottom-color: #1b6ec2;
+    color: #1b6ec2;
+}
+
+.package-install-section .nav-tabs .nav-link.active {
+    color: #1b6ec2;
+    border-color: transparent;
+    border-bottom-color: #1b6ec2;
+    font-weight: 500;
+}
+
+.package-install-section .tab-content {
+    padding: 0;
+}
+
+.code-block-with-copy {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.code-block-with-copy .code {
+    flex: 1;
+    margin-bottom: 0;
+    padding-right: 3rem;
+}
+
+.copy-button {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.copy-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.copy-button:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.copy-button.copied {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.copy-button .ms-Icon {
+    font-size: 16px;
+}
