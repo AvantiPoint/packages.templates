@@ -11,6 +11,7 @@ using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
+using NuGetFeedTemplate.Models;
 using NuGetFeedTemplate.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,6 +94,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IOAuthService, OAuthService>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -145,6 +147,142 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    // Authentication Minimal API Endpoints
+    var authGroup = app.MapGroup("/api/authentication");
+
+    authGroup.MapGet("/login/{provider}", async (string provider, IOAuthService oauthService, HttpContext httpContext) =>
+    {
+        if (!oauthService.IsValidProvider(provider))
+            return Results.BadRequest(new { error = "Invalid provider" });
+
+        var redirectUri = oauthService.GetRedirectUri(httpContext, provider);
+        var authUrl = oauthService.GetAuthUrl(provider, redirectUri);
+
+        return Results.Ok(new { authUrl });
+    })
+    .AllowAnonymous();
+
+    authGroup.MapGet("/callback/{provider}", async (
+        string provider,
+        string code,
+        string error,
+        IOAuthService oauthService,
+        FeedContext dbContext,
+        IJwtTokenService tokenService,
+        ILogger<Program> logger,
+        HttpContext httpContext) =>
+    {
+        if (!string.IsNullOrEmpty(error))
+        {
+            logger.LogWarning("OAuth error: {Error}", error);
+            return Results.Redirect($"/?error={Uri.EscapeDataString(error)}");
+        }
+
+        if (string.IsNullOrEmpty(code))
+        {
+            return Results.Redirect("/?error=no_code");
+        }
+
+        try
+        {
+            var redirectUri = oauthService.GetRedirectUri(httpContext, provider);
+            var (email, name, externalId) = await oauthService.GetUserInfoFromProvider(provider, code, redirectUri);
+
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    Name = name,
+                    ExternalProvider = provider,
+                    ExternalId = externalId,
+                    PackagePublisher = !await dbContext.Users.AnyAsync()
+                };
+                dbContext.Users.Add(user);
+                await dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                // Update external provider info if changed
+                user.ExternalProvider = provider;
+                user.ExternalId = externalId;
+                user.LastLoginAt = DateTimeOffset.Now;
+                await dbContext.SaveChangesAsync();
+            }
+
+            if (user.IsRevoked)
+            {
+                return Results.Redirect("/?error=user_revoked");
+            }
+
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var (accessToken, refreshToken) = await tokenService.GenerateTokensAsync(user, ipAddress);
+
+            // Create or update system token
+            var systemToken = await dbContext.AuthTokens
+                .FirstOrDefaultAsync(x => x.UserEmail == email && x.IsSystemToken && !x.Revoked && x.Expires > DateTimeOffset.Now);
+
+            if (systemToken == null)
+            {
+                systemToken = new AuthToken
+                {
+                    Description = "System Token",
+                    UserEmail = email,
+                    IsSystemToken = true,
+                    Expires = DateTimeOffset.Now.AddHours(24)
+                };
+                dbContext.AuthTokens.Add(systemToken);
+                await dbContext.SaveChangesAsync();
+            }
+
+            // Redirect to a page that will handle setting cookies and local storage
+            var callbackUrl = $"/auth-callback?access_token={Uri.EscapeDataString(accessToken)}&refresh_token={Uri.EscapeDataString(refreshToken)}&email={Uri.EscapeDataString(email)}&name={Uri.EscapeDataString(name)}&is_admin={user.PackagePublisher}";
+            return Results.Redirect(callbackUrl);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during OAuth callback");
+            return Results.Redirect($"/?error={Uri.EscapeDataString("authentication_failed")}");
+        }
+    })
+    .AllowAnonymous();
+
+    authGroup.MapPost("/refresh", async (RefreshTokenRequest request, IJwtTokenService tokenService, HttpContext httpContext) =>
+    {
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var result = await tokenService.RefreshTokenAsync(request.RefreshToken, ipAddress);
+
+        if (result == null)
+            return Results.Unauthorized();
+
+        var (accessToken, refreshToken) = result.Value;
+        return Results.Ok(new { accessToken, refreshToken });
+    })
+    .AllowAnonymous();
+
+    authGroup.MapPost("/logout", async (
+        RefreshTokenRequest request,
+        IJwtTokenService tokenService,
+        HttpContext httpContext) =>
+    {
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var email = httpContext.User.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (!string.IsNullOrEmpty(request?.RefreshToken))
+        {
+            await tokenService.RevokeTokenAsync(request.RefreshToken, ipAddress);
+        }
+
+        if (!string.IsNullOrEmpty(email))
+        {
+            await tokenService.RevokeAllUserTokensAsync(email, ipAddress);
+        }
+
+        return Results.Ok(new { message = "Logged out successfully" });
+    })
+    .RequireAuthorization();
 
     app.MapRazorPages();
     app.MapControllers();
