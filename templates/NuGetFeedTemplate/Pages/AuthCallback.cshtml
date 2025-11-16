@@ -1,0 +1,53 @@
+@page
+@model NuGetFeedTemplate.Pages.AuthCallbackModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authenticating...</title>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px;">
+        <h2>Authenticating...</h2>
+        <p>Please wait while we complete your login.</p>
+    </div>
+
+    <script>
+        // Get query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token');
+        const email = urlParams.get('email');
+        const name = urlParams.get('name');
+        const isAdmin = urlParams.get('is_admin') === 'true';
+
+        if (accessToken && refreshToken) {
+            // Store tokens
+            localStorage.setItem('access_token', accessToken);
+            localStorage.setItem('refresh_token', refreshToken);
+            localStorage.setItem('user_email', email);
+            localStorage.setItem('user_name', name);
+            localStorage.setItem('is_admin', isAdmin);
+
+            // Set cookie for server-side authentication
+            document.cookie = `access_token=${accessToken}; path=/; max-age=900; SameSite=Lax`;
+            document.cookie = `refresh_token=${refreshToken}; path=/; max-age=604800; SameSite=Lax`;
+
+            // Redirect to home page
+            window.location.href = '/';
+        } else {
+            const error = urlParams.get('error') || 'Unknown error';
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 50px;">
+                    <h2>Authentication Failed</h2>
+                    <p>Error: ${error}</p>
+                    <a href="/">Return to Home</a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

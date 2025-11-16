@@ -14,6 +14,8 @@ namespace NuGetFeedTemplate.Data
 
         public DbSet<User> Users { get; set; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
         public DbSet<PackageGroup> PackageGroups { get; set; }
 
         public DbSet<PackageGroupMember> PackageGroupMembers { get; set; }
@@ -38,6 +40,21 @@ namespace NuGetFeedTemplate.Data
             modelBuilder.Entity<AuthToken>()
                 .Property(x => x.Expires)
                 .HasDefaultValueSql("DATEADD(year, 1, SYSDATETIMEOFFSET())");
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasKey(x => x.Token);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(x => x.Created)
+                .HasDefaultValueSql("SYSDATETIMEOFFSET()");
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(x => x.Expires)
+                .HasDefaultValueSql("DATEADD(day, 7, SYSDATETIMEOFFSET())");
+
+            modelBuilder.Entity<User>()
+                .Property(x => x.CreatedAt)
+                .HasDefaultValueSql("SYSDATETIMEOFFSET()");
 
             modelBuilder.Entity<PackageGroup>()
                 .HasKey(x => x.Name);

@@ -1,12 +1,12 @@
 using System.Security.Claims;
+using System.Text;
 using AvantiPoint.Packages;
 using AvantiPoint.Packages.Hosting;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Tokens;
 using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
@@ -14,6 +14,17 @@ using NuGetFeedTemplate.Data.Models;
 using NuGetFeedTemplate.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure JWT settings
+var jwtSettings = new JwtSettings();
+builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
+builder.Services.AddSingleton(jwtSettings);
+
+// Configure OAuth settings
+var oauthSettings = new OAuthSettings();
+builder.Configuration.GetSection("OAuth").Bind(oauthSettings);
+builder.Services.AddSingleton(oauthSettings);
+
 builder.Services.AddNuGetPackageApi(options =>
 {
     switch (options.Options.Storage.Type)
@@ -31,28 +42,66 @@ builder.Services.AddNuGetPackageApi(options =>
        .AddSqlServerDatabase("DefaultConnection");
 });
 
-builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-    .EnableTokenAcquisitionToCallDownstreamApi(new[] { "User.Read", "User.ReadBasic.All" })
-    .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
-    .AddInMemoryTokenCaches();
-
-builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+// Add JWT Authentication
+builder.Services.AddAuthentication(options =>
 {
-    options.Prompt = "select_account";
-    options.Events = new OpenIdConnectEvents
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        OnTokenValidated = OnTokenValidated
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+    };
+
+    // Support token from cookie for browser requests
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Check for token in cookie first (for browser)
+            if (context.Request.Cookies.TryGetValue("access_token", out var token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            var feedContext = context.HttpContext.RequestServices.GetRequiredService<FeedContext>();
+            var email = context.Principal.FindFirstValue(ClaimTypes.Email);
+            
+            if (!string.IsNullOrEmpty(email))
+            {
+                var user = await feedContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+                
+                if (user != null && user.IsRevoked)
+                {
+                    context.Fail("User access has been revoked.");
+                }
+            }
+        }
     };
 });
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddAuthorization(options =>
 {
     // By default, all incoming requests will be authorized according to the default policy
     options.FallbackPolicy = options.DefaultPolicy;
 });
-builder.Services.AddRazorPages()
-    .AddMicrosoftIdentityUI();
+
+builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 builder.Services.Configure<IISServerOptions>(options =>
 {
@@ -107,58 +156,4 @@ catch (Exception ex)
     var logFactory = app.Services.GetService<ILoggerFactory>();
     var logger = logFactory.CreateLogger("Program");
     logger.LogError(ex,"An unexpected error occurred.");
-}
-
-static async Task OnTokenValidated(TokenValidatedContext ctx)
-{
-    var feedContext = ctx.HttpContext.RequestServices.GetRequiredService<FeedContext>();
-    var email = ctx.Principal.FindFirstValue("preferred_username");
-    var user = await feedContext.Users.FirstOrDefaultAsync(x => x.Email == email);
-    if (user is null)
-    {
-        user = new User
-        {
-            Email = email,
-            Name = ctx.Principal.FindFirstValue("name"),
-            PackagePublisher = !await feedContext.Users.AnyAsync()
-        };
-        feedContext.Users.Add(user);
-        await feedContext.SaveChangesAsync();
-    }
-
-    // Check if user is revoked
-    if (user.IsRevoked)
-    {
-        ctx.Fail("User access has been revoked.");
-        return;
-    }
-
-    // Get or create a valid system token for the user
-    var systemToken = await feedContext.AuthTokens
-        .FirstOrDefaultAsync(x => x.UserEmail == email && x.IsSystemToken == true && x.Revoked == false && x.Expires > DateTimeOffset.Now);
-    
-    if (systemToken is null)
-    {
-        // Create a new system token that expires in 24 hours
-        systemToken = new AuthToken
-        {
-            Description = "System Token",
-            UserEmail = email,
-            IsSystemToken = true,
-            Created = DateTimeOffset.Now,
-            Expires = DateTimeOffset.Now.AddHours(24)
-        };
-        feedContext.AuthTokens.Add(systemToken);
-        await feedContext.SaveChangesAsync();
-    }
-
-    var claimsIdentity = ctx.Principal.Identity as ClaimsIdentity;
-    
-    // Add the system token as a claim
-    claimsIdentity.AddClaim(new Claim(FeedClaims.SystemToken, systemToken.Key));
-
-    if (user.PackagePublisher)
-    {
-        claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
-    }
 }

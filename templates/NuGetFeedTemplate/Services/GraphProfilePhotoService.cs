@@ -1,31 +1,30 @@
-using Microsoft.Graph;
-using Microsoft.Graph.Models;
+using System.Net.Http.Headers;
+using NuGetFeedTemplate.Configuration;
 
 namespace NuGetFeedTemplate.Services;
 
 public class GraphProfilePhotoService : IGraphProfilePhotoService
 {
-    private readonly GraphServiceClient _graphServiceClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly OAuthSettings _oauthSettings;
     private readonly ILogger<GraphProfilePhotoService> _logger;
 
-    public GraphProfilePhotoService(GraphServiceClient graphServiceClient, ILogger<GraphProfilePhotoService> logger)
+    public GraphProfilePhotoService(
+        IHttpClientFactory httpClientFactory,
+        OAuthSettings oauthSettings,
+        ILogger<GraphProfilePhotoService> logger)
     {
-        _graphServiceClient = graphServiceClient;
+        _httpClientFactory = httpClientFactory;
+        _oauthSettings = oauthSettings;
         _logger = logger;
     }
 
     public async Task<Stream> GetCurrentUserPhotoAsync()
     {
-        try
-        {
-            var photoStream = await _graphServiceClient.Me.Photo.Content.GetAsync();
-            return photoStream;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to retrieve current user photo from Microsoft Graph");
-            return null;
-        }
+        // This method is deprecated for JWT authentication
+        // Profile photos should be fetched using the user's email
+        _logger.LogWarning("GetCurrentUserPhotoAsync is not supported with JWT authentication");
+        return null;
     }
 
     public async Task<Stream> GetUserPhotoAsync(string email)
@@ -38,30 +37,54 @@ public class GraphProfilePhotoService : IGraphProfilePhotoService
 
         try
         {
-            // Sanitize email to prevent injection
-            email = email.Replace("'", "''");
-
-            // Try to find the user by email
-            var users = await _graphServiceClient.Users.GetAsync(requestConfig =>
-            {
-                requestConfig.QueryParameters.Filter = $"mail eq '{email}' or userPrincipalName eq '{email}'";
-                requestConfig.QueryParameters.Select = new[] { "id" };
-            });
-
-            if (users?.Value?.Count > 0)
-            {
-                var userId = users.Value[0].Id;
-                var photoStream = await _graphServiceClient.Users[userId].Photo.Content.GetAsync();
-                return photoStream;
-            }
-
-            _logger.LogWarning("User not found in Microsoft Graph: {Email}", email);
-            return null;
+            // Generate a default avatar instead of fetching from external providers
+            // This simplifies the implementation and removes dependency on Graph API
+            return await GenerateDefaultAvatarAsync(email);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to retrieve user photo from Microsoft Graph for {Email}", email);
+            _logger.LogWarning(ex, "Failed to generate user photo for {Email}", email);
             return null;
         }
+    }
+
+    private async Task<Stream> GenerateDefaultAvatarAsync(string email)
+    {
+        // Generate a simple avatar with initials
+        // You can replace this with a library like DiceBear or use Gravatar
+        var httpClient = _httpClientFactory.CreateClient();
+        
+        // Use Gravatar as a fallback
+        var hash = ComputeMd5Hash(email.Trim().ToLower());
+        var gravatarUrl = $"https://www.gravatar.com/avatar/{hash}?d=identicon&s=200";
+        
+        try
+        {
+            var response = await httpClient.GetAsync(gravatarUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStreamAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch Gravatar for {Email}", email);
+        }
+
+        return null;
+    }
+
+    private static string ComputeMd5Hash(string input)
+    {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+        var hashBytes = md5.ComputeHash(inputBytes);
+        
+        var sb = new System.Text.StringBuilder();
+        foreach (var b in hashBytes)
+        {
+            sb.Append(b.ToString("x2"));
+        }
+        return sb.ToString();
     }
 }
