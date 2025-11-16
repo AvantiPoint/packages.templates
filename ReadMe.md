@@ -47,6 +47,33 @@ You will need:
 3. Generate a secure JWT secret key (minimum 32 characters)
 4. Update the Email Settings with the email address you want emails to send from along with the SendGrid API Key
 
+### Configuration Options
+
+The application supports two configuration formats:
+
+**New Format (Recommended)**: Use the `OAuth` section in appsettings.json:
+```json
+"OAuth": {
+  "Provider": "Microsoft",
+  "Microsoft": {
+    "TenantId": "your-tenant-id",
+    "ClientId": "your-client-id",
+    "ClientSecret": "your-client-secret"
+  }
+}
+```
+
+**Legacy Format (Backward Compatible)**: Use the `AzureAd` section (existing deployments):
+```json
+"AzureAd": {
+  "TenantId": "your-tenant-id",
+  "ClientId": "your-client-id",
+  "ClientSecret": "your-client-secret"
+}
+```
+
+Both formats are supported to maintain backward compatibility with existing deployments.
+
 ## Template Parameters
 
 When creating a new project from this template, you can specify:

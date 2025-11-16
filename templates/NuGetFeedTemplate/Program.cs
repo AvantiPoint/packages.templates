@@ -21,9 +21,23 @@ var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
 builder.Services.AddSingleton(jwtSettings);
 
-// Configure OAuth settings
+// Configure OAuth settings with backward compatibility
 var oauthSettings = new OAuthSettings();
 builder.Configuration.GetSection("OAuth").Bind(oauthSettings);
+
+// Support legacy AzureAd configuration for backward compatibility
+var azureAdSection = builder.Configuration.GetSection("AzureAd");
+if (azureAdSection.Exists() && oauthSettings.Microsoft == null)
+{
+    oauthSettings.Microsoft = new MicrosoftOAuthSettings();
+    oauthSettings.Microsoft.TenantId = azureAdSection["TenantId"];
+    oauthSettings.Microsoft.ClientId = azureAdSection["ClientId"];
+    oauthSettings.Microsoft.ClientSecret = azureAdSection["ClientSecret"];
+    oauthSettings.Microsoft.Instance = azureAdSection["Instance"] ?? "https://login.microsoftonline.com/";
+    oauthSettings.Microsoft.CallbackPath = azureAdSection["CallbackPath"] ?? "/api/authentication/callback/microsoft";
+    oauthSettings.Provider = "Microsoft";
+}
+
 builder.Services.AddSingleton(oauthSettings);
 
 builder.Services.AddNuGetPackageApi(options =>
