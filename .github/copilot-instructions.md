@@ -13,8 +13,8 @@ This repository contains a dotnet template for creating a self-hosted NuGet Pack
 
 ## Technology Stack
 
-- **.NET SDK**: 9.0
-- **Framework**: ASP.NET Core (net9.0)
+- **.NET SDK**: 10.0
+- **Framework**: ASP.NET Core (net10.0)
 - **Authentication**: Azure Active Directory via Microsoft.Identity.Web
 - **Email Service**: SendGrid (primary) and Postmark (alternative)
 - **Database**: SQL Server with Entity Framework Core
