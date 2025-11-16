@@ -126,6 +126,13 @@ static async Task OnTokenValidated(TokenValidatedContext ctx)
         await feedContext.SaveChangesAsync();
     }
 
+    // Check if user is revoked
+    if (user.IsRevoked)
+    {
+        ctx.Fail("User access has been revoked.");
+        return;
+    }
+
     // Get or create a valid system token for the user
     var systemToken = await feedContext.AuthTokens
         .FirstOrDefaultAsync(x => x.UserEmail == email && x.IsSystemToken == true && x.Revoked == false && x.Expires > DateTimeOffset.Now);

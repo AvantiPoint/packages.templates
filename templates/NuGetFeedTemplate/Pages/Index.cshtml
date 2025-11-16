@@ -23,13 +23,13 @@
           <label for="framework" class="form-label">Framework</label>
           <select name="framework" id="framework" class="form-control" onchange="document.getElementById('searchForm').submit()">
             <option value="">All Frameworks</option>
-            <option value="net10.0" @(Model.SelectedFramework == "net10.0" ? "selected" : "")>.NET 10.0</option>
-            <option value="net9.0" @(Model.SelectedFramework == "net9.0" ? "selected" : "")>.NET 9.0</option>
-            <option value="net8.0" @(Model.SelectedFramework == "net8.0" ? "selected" : "")>.NET 8.0</option>
-            <option value="net7.0" @(Model.SelectedFramework == "net7.0" ? "selected" : "")>.NET 7.0</option>
-            <option value="net6.0" @(Model.SelectedFramework == "net6.0" ? "selected" : "")>.NET 6.0</option>
-            <option value="netstandard2.1" @(Model.SelectedFramework == "netstandard2.1" ? "selected" : "")>.NET Standard 2.1</option>
-            <option value="netstandard2.0" @(Model.SelectedFramework == "netstandard2.0" ? "selected" : "")>.NET Standard 2.0</option>
+            <option value="net10.0" selected="@(Model.SelectedFramework == "net10.0" ? "selected" : null)">.NET 10.0</option>
+            <option value="net9.0" selected="@(Model.SelectedFramework == "net9.0" ? "selected" : null)">.NET 9.0</option>
+            <option value="net8.0" selected="@(Model.SelectedFramework == "net8.0" ? "selected" : null)">.NET 8.0</option>
+            <option value="net7.0" selected="@(Model.SelectedFramework == "net7.0" ? "selected" : null)">.NET 7.0</option>
+            <option value="net6.0" selected="@(Model.SelectedFramework == "net6.0" ? "selected" : null)">.NET 6.0</option>
+            <option value="netstandard2.1" selected="@(Model.SelectedFramework == "netstandard2.1" ? "selected" : null)">.NET Standard 2.1</option>
+            <option value="netstandard2.0" selected="@(Model.SelectedFramework == "netstandard2.0" ? "selected" : null)">.NET Standard 2.0</option>
           </select>
         </div>
 
@@ -37,15 +37,15 @@
           <label for="runtime" class="form-label">Runtime</label>
           <select name="runtime" id="runtime" class="form-control" onchange="document.getElementById('searchForm').submit()">
             <option value="">All Runtimes</option>
-            <option value="android" @(Model.SelectedRuntime == "android" ? "selected" : "")>Android</option>
-            <option value="ios" @(Model.SelectedRuntime == "ios" ? "selected" : "")>iOS</option>
-            <option value="maccatalyst" @(Model.SelectedRuntime == "maccatalyst" ? "selected" : "")>Mac Catalyst</option>
-            <option value="macos" @(Model.SelectedRuntime == "macos" ? "selected" : "")>macOS</option>
-            <option value="tvos" @(Model.SelectedRuntime == "tvos" ? "selected" : "")>tvOS</option>
-            <option value="windows" @(Model.SelectedRuntime == "windows" ? "selected" : "")>Windows</option>
-            <option value="tizen" @(Model.SelectedRuntime == "tizen" ? "selected" : "")>Tizen</option>
-            <option value="desktop" @(Model.SelectedRuntime == "desktop" ? "selected" : "")>Desktop (Uno Platform)</option>
-            <option value="browserwasm" @(Model.SelectedRuntime == "browserwasm" ? "selected" : "")>Browser WebAssembly (Uno Platform)</option>
+            <option value="android" selected="@(Model.SelectedRuntime == "android" ? "selected" : null)">Android</option>
+            <option value="ios" selected="@(Model.SelectedRuntime == "ios" ? "selected" : null)">iOS</option>
+            <option value="maccatalyst" selected="@(Model.SelectedRuntime == "maccatalyst" ? "selected" : null)">Mac Catalyst</option>
+            <option value="macos" selected="@(Model.SelectedRuntime == "macos" ? "selected" : null)">macOS</option>
+            <option value="tvos" selected="@(Model.SelectedRuntime == "tvos" ? "selected" : null)">tvOS</option>
+            <option value="windows" selected="@(Model.SelectedRuntime == "windows" ? "selected" : null)">Windows</option>
+            <option value="tizen" selected="@(Model.SelectedRuntime == "tizen" ? "selected" : null)">Tizen</option>
+            <option value="desktop" selected="@(Model.SelectedRuntime == "desktop" ? "selected" : null)">Desktop (Uno Platform)</option>
+            <option value="browserwasm" selected="@(Model.SelectedRuntime == "browserwasm" ? "selected" : null)">Browser WebAssembly (Uno Platform)</option>
           </select>
           <small class="form-text text-muted">Platform-specific packages only</small>
         </div>
@@ -54,11 +54,11 @@
           <label for="packageType" class="form-label">Package Type</label>
           <select name="packageType" id="packageType" class="form-control" onchange="document.getElementById('searchForm').submit()">
             <option value="">All Types</option>
-            <option value="Dependency" @(Model.SelectedPackageType == "Dependency" ? "selected" : "")>Dependency</option>
-            <option value="Template" @(Model.SelectedPackageType == "Template" ? "selected" : "")>Template</option>
-            <option value="DotnetTool" @(Model.SelectedPackageType == "DotnetTool" ? "selected" : "")>.NET Tool</option>
-            <option value="MCPServer" @(Model.SelectedPackageType == "MCPServer" ? "selected" : "")>MCP Server</option>
-            <option value="SDK" @(Model.SelectedPackageType == "SDK" ? "selected" : "")>SDK</option>
+            <option value="Dependency" selected="@(Model.SelectedPackageType == "Dependency" ? "selected" : null)">Dependency</option>
+            <option value="Template" selected="@(Model.SelectedPackageType == "Template" ? "selected" : null)">Template</option>
+            <option value="DotnetTool" selected="@(Model.SelectedPackageType == "DotnetTool" ? "selected" : null)">.NET Tool</option>
+            <option value="MCPServer" selected="@(Model.SelectedPackageType == "MCPServer" ? "selected" : null)">MCP Server</option>
+            <option value="SDK" selected="@(Model.SelectedPackageType == "SDK" ? "selected" : null)">SDK</option>
           </select>
         </div>
 

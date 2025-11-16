@@ -8,6 +8,7 @@ namespace NuGetFeedTemplate.Data.Models
         public string Name { get; set; }
         public string Email { get; set; }
         public bool PackagePublisher { get; set; }
+        public bool IsRevoked { get; set; }
 
         public List<AuthToken> Tokens { get; set; }
     }

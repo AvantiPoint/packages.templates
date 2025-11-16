@@ -1,16 +1,15 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace NuGetFeedTemplate.Migrations
 {
-    public partial class AddSystemTokenSupport : Migration
+    public partial class AddUserRevocation : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Add IsSystemToken column to AuthTokens table
+            // Add IsRevoked column to Users table
             migrationBuilder.AddColumn<bool>(
-                name: "IsSystemToken",
-                table: "AuthTokens",
+                name: "IsRevoked",
+                table: "Users",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -18,13 +17,10 @@ namespace NuGetFeedTemplate.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Remove system tokens
-            migrationBuilder.Sql("DELETE FROM AuthTokens WHERE IsSystemToken = 1");
-
-            // Remove the IsSystemToken column
+            // Remove the IsRevoked column
             migrationBuilder.DropColumn(
-                name: "IsSystemToken",
-                table: "AuthTokens");
+                name: "IsRevoked",
+                table: "Users");
         }
     }
 }
