@@ -187,17 +187,20 @@ try
         try
         {
             var redirectUri = oauthService.GetRedirectUri(httpContext, provider);
-            var (email, name, externalId) = await oauthService.GetUserInfoFromProvider(provider, code, redirectUri);
+            var userInfo = await oauthService.GetUserInfoFromProvider(provider, code, redirectUri);
 
-            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == userInfo.Email);
             if (user == null)
             {
                 user = new User
                 {
-                    Email = email,
-                    Name = name,
+                    Email = userInfo.Email,
+                    Name = userInfo.DisplayName,
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
+                    ProfilePictureUrl = userInfo.ProfilePictureUrl,
                     ExternalProvider = provider,
-                    ExternalId = externalId,
+                    ExternalId = userInfo.ExternalId,
                     PackagePublisher = !await dbContext.Users.AnyAsync()
                 };
                 dbContext.Users.Add(user);
@@ -207,7 +210,10 @@ try
             {
                 // Update external provider info if changed
                 user.ExternalProvider = provider;
-                user.ExternalId = externalId;
+                user.ExternalId = userInfo.ExternalId;
+                user.FirstName = userInfo.FirstName;
+                user.LastName = userInfo.LastName;
+                user.ProfilePictureUrl = userInfo.ProfilePictureUrl;
                 user.LastLoginAt = DateTimeOffset.Now;
                 await dbContext.SaveChangesAsync();
             }
@@ -222,14 +228,14 @@ try
 
             // Create or update system token
             var systemToken = await dbContext.AuthTokens
-                .FirstOrDefaultAsync(x => x.UserEmail == email && x.IsSystemToken && !x.Revoked && x.Expires > DateTimeOffset.Now);
+                .FirstOrDefaultAsync(x => x.UserEmail == userInfo.Email && x.IsSystemToken && !x.Revoked && x.Expires > DateTimeOffset.Now);
 
             if (systemToken == null)
             {
                 systemToken = new AuthToken
                 {
                     Description = "System Token",
-                    UserEmail = email,
+                    UserEmail = userInfo.Email,
                     IsSystemToken = true,
                     Expires = DateTimeOffset.Now.AddHours(24)
                 };
@@ -238,7 +244,7 @@ try
             }
 
             // Redirect to a page that will handle setting cookies and local storage
-            var callbackUrl = $"/auth-callback?access_token={Uri.EscapeDataString(accessToken)}&refresh_token={Uri.EscapeDataString(refreshToken)}&email={Uri.EscapeDataString(email)}&name={Uri.EscapeDataString(name)}&is_admin={user.PackagePublisher}";
+            var callbackUrl = $"/auth-callback?access_token={Uri.EscapeDataString(accessToken)}&refresh_token={Uri.EscapeDataString(refreshToken)}&email={Uri.EscapeDataString(userInfo.Email)}&name={Uri.EscapeDataString(userInfo.DisplayName)}&is_admin={user.PackagePublisher}";
             return Results.Redirect(callbackUrl);
         }
         catch (Exception ex)

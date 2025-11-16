@@ -3,15 +3,24 @@ using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
 using NuGetFeedTemplate.Data.Models;
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace NuGetFeedTemplate.Services;
+
+public record OAuthUserInfo(
+    string Email,
+    string FirstName,
+    string LastName,
+    string DisplayName,
+    string ExternalId,
+    string ProfilePictureUrl);
 
 public interface IOAuthService
 {
     bool IsValidProvider(string provider);
     string GetRedirectUri(HttpContext httpContext, string provider);
     string GetAuthUrl(string provider, string redirectUri);
-    Task<(string email, string name, string externalId)> GetUserInfoFromProvider(string provider, string code, string redirectUri);
+    Task<OAuthUserInfo> GetUserInfoFromProvider(string provider, string code, string redirectUri);
 }
 
 public class OAuthService : IOAuthService
@@ -53,7 +62,7 @@ public class OAuthService : IOAuthService
             : GetGoogleAuthUrl(redirectUri);
     }
 
-    public async Task<(string email, string name, string externalId)> GetUserInfoFromProvider(string provider, string code, string redirectUri)
+    public async Task<OAuthUserInfo> GetUserInfoFromProvider(string provider, string code, string redirectUri)
     {
         if (provider.ToLower() == "microsoft")
             return await GetMicrosoftUserInfo(code, redirectUri);
@@ -98,7 +107,7 @@ public class OAuthService : IOAuthService
         return $"{authEndpoint}?{queryString}";
     }
 
-    private async Task<(string email, string name, string externalId)> GetMicrosoftUserInfo(string code, string redirectUri)
+    private async Task<OAuthUserInfo> GetMicrosoftUserInfo(string code, string redirectUri)
     {
         var settings = _oauthSettings.Microsoft;
         var tokenEndpoint = $"{settings.Instance}{settings.TenantId}/oauth2/v2.0/token";
@@ -128,18 +137,40 @@ public class OAuthService : IOAuthService
         var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
         userInfoResponse.EnsureSuccessStatusCode();
 
-        var userData = await userInfoResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var userData = await userInfoResponse.Content.ReadFromJsonAsync<JsonElement>();
 
-        var email = userData.ContainsKey("mail") ? userData["mail"]?.ToString()
-                  : userData.ContainsKey("userPrincipalName") ? userData["userPrincipalName"]?.ToString()
+        var email = userData.TryGetProperty("mail", out var mailProp) ? mailProp.GetString()
+                  : userData.TryGetProperty("userPrincipalName", out var upnProp) ? upnProp.GetString()
                   : null;
-        var name = userData.ContainsKey("displayName") ? userData["displayName"]?.ToString() : email;
-        var externalId = userData["id"]?.ToString();
+        
+        var firstName = userData.TryGetProperty("givenName", out var givenNameProp) ? givenNameProp.GetString() : string.Empty;
+        var lastName = userData.TryGetProperty("surname", out var surnameProp) ? surnameProp.GetString() : string.Empty;
+        var displayName = userData.TryGetProperty("displayName", out var displayNameProp) ? displayNameProp.GetString() : email;
+        var externalId = userData.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
 
-        return (email, name, externalId);
+        // Try to get profile photo URL
+        string profilePictureUrl = null;
+        try
+        {
+            var photoRequest = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me/photo/$value");
+            photoRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            
+            var photoResponse = await httpClient.SendAsync(photoRequest);
+            if (photoResponse.IsSuccessStatusCode)
+            {
+                // We'll store this as a URL reference to fetch later
+                profilePictureUrl = $"https://graph.microsoft.com/v1.0/users/{externalId}/photo/$value";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Could not fetch Microsoft profile photo for user {Email}", email);
+        }
+
+        return new OAuthUserInfo(email, firstName, lastName, displayName, externalId, profilePictureUrl);
     }
 
-    private async Task<(string email, string name, string externalId)> GetGoogleUserInfo(string code, string redirectUri)
+    private async Task<OAuthUserInfo> GetGoogleUserInfo(string code, string redirectUri)
     {
         var settings = _oauthSettings.Google;
         var tokenEndpoint = "https://oauth2.googleapis.com/token";
@@ -169,12 +200,15 @@ public class OAuthService : IOAuthService
         var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
         userInfoResponse.EnsureSuccessStatusCode();
 
-        var userData = await userInfoResponse.Content.ReadFromJsonAsync<Dictionary<string, object>>();
+        var userData = await userInfoResponse.Content.ReadFromJsonAsync<JsonElement>();
 
-        var email = userData["email"]?.ToString();
-        var name = userData["name"]?.ToString();
-        var externalId = userData["id"]?.ToString();
+        var email = userData.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+        var firstName = userData.TryGetProperty("given_name", out var givenNameProp) ? givenNameProp.GetString() : string.Empty;
+        var lastName = userData.TryGetProperty("family_name", out var familyNameProp) ? familyNameProp.GetString() : string.Empty;
+        var displayName = userData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : email;
+        var externalId = userData.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+        var profilePictureUrl = userData.TryGetProperty("picture", out var pictureProp) ? pictureProp.GetString() : null;
 
-        return (email, name, externalId);
+        return new OAuthUserInfo(email, firstName, lastName, displayName, externalId, profilePictureUrl);
     }
 }
