@@ -11,23 +11,24 @@ public partial class AddJwtAuthenticationSupport : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
-            name: "PasswordHash",
+            name: "FirstName",
             table: "Users",
-            type: "nvarchar(max)",
+            type: "nvarchar(100)",
+            maxLength: 100,
             nullable: true);
 
         migrationBuilder.AddColumn<string>(
-            name: "ExternalProvider",
+            name: "LastName",
             table: "Users",
-            type: "nvarchar(50)",
-            maxLength: 50,
+            type: "nvarchar(100)",
+            maxLength: 100,
             nullable: true);
 
         migrationBuilder.AddColumn<string>(
-            name: "ExternalId",
+            name: "ProfilePictureUrl",
             table: "Users",
-            type: "nvarchar(255)",
-            maxLength: 255,
+            type: "nvarchar(500)",
+            maxLength: 500,
             nullable: true);
 
         migrationBuilder.AddColumn<DateTimeOffset>(
@@ -42,6 +43,18 @@ public partial class AddJwtAuthenticationSupport : Migration
             table: "Users",
             type: "datetimeoffset",
             nullable: true);
+
+        // Backfill CreatedAt from earliest AuthToken for each user
+        migrationBuilder.Sql(@"
+            UPDATE u
+            SET u.CreatedAt = ISNULL(
+                (SELECT MIN(at.Created) 
+                 FROM AuthTokens at 
+                 WHERE at.UserEmail = u.Email),
+                SYSDATETIMEOFFSET()
+            )
+            FROM Users u
+        ");
 
         migrationBuilder.CreateTable(
             name: "RefreshTokens",
@@ -79,15 +92,15 @@ public partial class AddJwtAuthenticationSupport : Migration
             name: "RefreshTokens");
 
         migrationBuilder.DropColumn(
-            name: "PasswordHash",
+            name: "FirstName",
             table: "Users");
 
         migrationBuilder.DropColumn(
-            name: "ExternalProvider",
+            name: "LastName",
             table: "Users");
 
         migrationBuilder.DropColumn(
-            name: "ExternalId",
+            name: "ProfilePictureUrl",
             table: "Users");
 
         migrationBuilder.DropColumn(
@@ -99,3 +112,4 @@ public partial class AddJwtAuthenticationSupport : Migration
             table: "Users");
     }
 }
+

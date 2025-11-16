@@ -12,7 +12,6 @@ public record OAuthUserInfo(
     string FirstName,
     string LastName,
     string DisplayName,
-    string ExternalId,
     string ProfilePictureUrl);
 
 public interface IOAuthService
@@ -146,7 +145,6 @@ public class OAuthService : IOAuthService
         var firstName = userData.TryGetProperty("givenName", out var givenNameProp) ? givenNameProp.GetString() : string.Empty;
         var lastName = userData.TryGetProperty("surname", out var surnameProp) ? surnameProp.GetString() : string.Empty;
         var displayName = userData.TryGetProperty("displayName", out var displayNameProp) ? displayNameProp.GetString() : email;
-        var externalId = userData.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
 
         // Try to get profile photo URL
         string profilePictureUrl = null;
@@ -158,8 +156,12 @@ public class OAuthService : IOAuthService
             var photoResponse = await httpClient.SendAsync(photoRequest);
             if (photoResponse.IsSuccessStatusCode)
             {
-                // We'll store this as a URL reference to fetch later
-                profilePictureUrl = $"https://graph.microsoft.com/v1.0/users/{externalId}/photo/$value";
+                // Store the Graph API endpoint as the URL
+                var userId = userData.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                if (userId != null)
+                {
+                    profilePictureUrl = $"https://graph.microsoft.com/v1.0/users/{userId}/photo/$value";
+                }
             }
         }
         catch (Exception ex)
@@ -167,7 +169,7 @@ public class OAuthService : IOAuthService
             _logger.LogDebug(ex, "Could not fetch Microsoft profile photo for user {Email}", email);
         }
 
-        return new OAuthUserInfo(email, firstName, lastName, displayName, externalId, profilePictureUrl);
+        return new OAuthUserInfo(email, firstName, lastName, displayName, profilePictureUrl);
     }
 
     private async Task<OAuthUserInfo> GetGoogleUserInfo(string code, string redirectUri)
@@ -203,12 +205,32 @@ public class OAuthService : IOAuthService
         var userData = await userInfoResponse.Content.ReadFromJsonAsync<JsonElement>();
 
         var email = userData.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+        
+        // Validate email domain if WorkspaceDomain is configured
+        if (!string.IsNullOrEmpty(settings.WorkspaceDomain) && !string.IsNullOrEmpty(email))
+        {
+            var emailDomain = email.Split('@').LastOrDefault();
+            if (!string.Equals(emailDomain, settings.WorkspaceDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("User {Email} attempted to authenticate but is not from allowed domain {Domain}", 
+                    email, settings.WorkspaceDomain);
+                throw new UnauthorizedAccessException($"Only users from {settings.WorkspaceDomain} domain are allowed to authenticate.");
+            }
+        }
+
+        // Verify email is verified
+        var isVerified = userData.TryGetProperty("verified_email", out var verifiedProp) && verifiedProp.GetBoolean();
+        if (!isVerified)
+        {
+            _logger.LogWarning("User {Email} attempted to authenticate but email is not verified", email);
+            throw new UnauthorizedAccessException("Email address must be verified.");
+        }
+
         var firstName = userData.TryGetProperty("given_name", out var givenNameProp) ? givenNameProp.GetString() : string.Empty;
         var lastName = userData.TryGetProperty("family_name", out var familyNameProp) ? familyNameProp.GetString() : string.Empty;
         var displayName = userData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : email;
-        var externalId = userData.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
         var profilePictureUrl = userData.TryGetProperty("picture", out var pictureProp) ? pictureProp.GetString() : null;
 
-        return new OAuthUserInfo(email, firstName, lastName, displayName, externalId, profilePictureUrl);
+        return new OAuthUserInfo(email, firstName, lastName, displayName, profilePictureUrl);
     }
 }

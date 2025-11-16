@@ -213,8 +213,6 @@ try
                     FirstName = userInfo.FirstName,
                     LastName = userInfo.LastName,
                     ProfilePictureUrl = userInfo.ProfilePictureUrl,
-                    ExternalProvider = provider,
-                    ExternalId = userInfo.ExternalId,
                     PackagePublisher = !await dbContext.Users.AnyAsync()
                 };
                 dbContext.Users.Add(user);
@@ -222,9 +220,7 @@ try
             }
             else
             {
-                // Update external provider info if changed
-                user.ExternalProvider = provider;
-                user.ExternalId = userInfo.ExternalId;
+                // Update user info on login
                 user.FirstName = userInfo.FirstName;
                 user.LastName = userInfo.LastName;
                 user.ProfilePictureUrl = userInfo.ProfilePictureUrl;
