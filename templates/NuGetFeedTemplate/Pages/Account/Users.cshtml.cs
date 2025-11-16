@@ -26,10 +26,18 @@ namespace NuGetFeedTemplate.Pages.Account
         }
 
         public IEnumerable<User> Users { get; set; }
+        
+        [BindProperty(SupportsGet = true)]
+        public string Filter { get; set; }
 
         public async Task OnGet()
         {
-            Users = await _dbContext.Users.ToArrayAsync();
+            // Default to showing active users only
+            var showRevoked = Filter?.Equals("revoked", StringComparison.OrdinalIgnoreCase) == true;
+            
+            Users = await _dbContext.Users
+                .Where(x => x.IsRevoked == showRevoked)
+                .ToArrayAsync();
         }
 
         public async Task OnPost([FromForm]User user, [FromServices] IEmailService emailService)
@@ -83,7 +91,8 @@ namespace NuGetFeedTemplate.Pages.Account
                 await _dbContext.SaveChangesAsync();
             }
 
-            Users = _dbContext.Users.ToArray();
+            // Maintain the current filter after POST
+            await OnGet();
         }
     }
 }
