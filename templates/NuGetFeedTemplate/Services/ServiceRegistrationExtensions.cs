@@ -57,6 +57,9 @@ public static class ServiceRegistrationExtensions
         {
             o.UseSqlServer(options.Configuration.GetConnectionString("DefaultConnection"));
         });
+
+        options.Services.AddHostedService<TokenExpirationNotificationService>();
+
         return options;
     }
 }

@@ -22,6 +22,8 @@ namespace NuGetFeedTemplate.Data
 
         public DbSet<PackageGroupSyndication> Syndications { get; set; }
 
+        public DbSet<TokenNotification> TokenNotifications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
