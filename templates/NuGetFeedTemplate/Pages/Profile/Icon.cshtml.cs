@@ -1,9 +1,12 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NuGetFeedTemplate.Services;
 
 namespace NuGetFeedTemplate.Pages.Profile
 {
+    [AllowAnonymous]
     public class IconModel : PageModel
     {
         private readonly IGraphProfilePhotoService _graphProfilePhotoService;
@@ -28,14 +31,12 @@ namespace NuGetFeedTemplate.Pages.Profile
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    // Get current user's photo
-                    photoStream = await _graphProfilePhotoService.GetCurrentUserPhotoAsync();
+                    // Get current user's email from claims
+                    email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.Identity.Name;
                 }
-                else
-                {
-                    // Get specific user's photo by email
-                    photoStream = await _graphProfilePhotoService.GetUserPhotoAsync(email);
-                }
+
+                // Get user's photo by email
+                photoStream = await _graphProfilePhotoService.GetUserPhotoAsync(email);
 
                 if (photoStream != null)
                 {
@@ -44,7 +45,7 @@ namespace NuGetFeedTemplate.Pages.Profile
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to retrieve profile photo from Microsoft Graph");
+                _logger.LogWarning(ex, "Failed to retrieve profile photo");
             }
 
             // Fallback to default user image

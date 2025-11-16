@@ -46,7 +46,7 @@ namespace NuGetFeedTemplate.Pages.Account
 
             if(existingTarget is null)
             {
-                target.AddedBy = User.FindFirstValue("name");
+                target.AddedBy = User.FindFirstValue(ClaimTypes.Name);
                 _db.PublishTargets.Add(target);
             }
             else

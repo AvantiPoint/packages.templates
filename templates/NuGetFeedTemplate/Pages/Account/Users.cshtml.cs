@@ -58,7 +58,7 @@ namespace NuGetFeedTemplate.Pages.Account
                     
                     // Send email notification
                     var to = new MailAddress(dbUser.Email, dbUser.Name);
-                    var adminName = User.FindFirstValue("name");
+                    var adminName = User.FindFirstValue(ClaimTypes.Name);
                     var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
                     
                     if (dbUser.IsRevoked)
