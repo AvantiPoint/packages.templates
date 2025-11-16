@@ -9,4 +9,6 @@ public static class EmailTemplates
     public const string TokenCreated = "token-created.html";
     public const string TokenRevoked = "token-revoked.html";
     public const string TokenRegenerated = "token-regenerated.html";
+    public const string UserRevoked = "user-revoked.html";
+    public const string UserRestored = "user-restored.html";
 }
