@@ -45,11 +45,67 @@
 
   @if(package.IsTool)
   {
-    <div class="code add-package-code">dotnet tool install --global @package.PackageId --version @package.Version</div>
+    <div class="package-install-section">
+      <div class="code-block-with-copy">
+        <div class="code add-package-code">dotnet tool install --global @package.PackageId --version @package.Version</div>
+        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+          <span class="ms-Icon ms-Icon--Copy"></span>
+        </button>
+      </div>
+    </div>
+  }
+  else if(package.IsTemplate)
+  {
+    <div class="package-install-section">
+      <div class="code-block-with-copy">
+        <div class="code add-package-code">dotnet new install @package.PackageId::@package.Version</div>
+        <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+          <span class="ms-Icon ms-Icon--Copy"></span>
+        </button>
+      </div>
+    </div>
   }
   else
   {
-    <div class="code add-package-code">&lt;<span class="c-pr">PackageReference</span> <span class="c-tr">Include</span>=<span class="c-st" style="font-weight:bold">"@package.PackageId"</span> <span class="c-tr">Version</span>=<span class="c-st" style="font-weight:bold">"@package.Version"</span> /&gt;</div>
+    <div class="package-install-section">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="cli-tab" data-bs-toggle="tab" data-bs-target="#cli" type="button" role="tab" aria-controls="cli" aria-selected="true">.NET CLI</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pmc-tab" data-bs-toggle="tab" data-bs-target="#pmc" type="button" role="tab" aria-controls="pmc" aria-selected="false">Package Manager</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="packageref-tab" data-bs-toggle="tab" data-bs-target="#packageref" type="button" role="tab" aria-controls="packageref" aria-selected="false">PackageReference</button>
+        </li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="cli" role="tabpanel" aria-labelledby="cli-tab">
+          <div class="code-block-with-copy">
+            <div class="code add-package-code">dotnet add package @package.PackageId --version @package.Version</div>
+            <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+              <span class="ms-Icon ms-Icon--Copy"></span>
+            </button>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="pmc" role="tabpanel" aria-labelledby="pmc-tab">
+          <div class="code-block-with-copy">
+            <div class="code add-package-code">NuGet\Install-Package @package.PackageId -Version @package.Version</div>
+            <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+              <span class="ms-Icon ms-Icon--Copy"></span>
+            </button>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="packageref" role="tabpanel" aria-labelledby="packageref-tab">
+          <div class="code-block-with-copy">
+            <div class="code add-package-code">&lt;<span class="c-pr">PackageReference</span> <span class="c-tr">Include</span>=<span class="c-st" style="font-weight:bold">"@package.PackageId"</span> <span class="c-tr">Version</span>=<span class="c-st" style="font-weight:bold">"@package.Version"</span> /&gt;</div>
+            <button class="copy-button" onclick="copyToClipboard(this)" title="Copy to clipboard">
+              <span class="ms-Icon ms-Icon--Copy"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   }
 
   @if(package.Tags.Any())
