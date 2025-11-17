@@ -60,6 +60,7 @@ public partial class AddJwtAuthenticationSupport : Migration
             name: "RefreshTokens",
             columns: table => new
             {
+                Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                 Token = table.Column<string>(type: "nvarchar(450)", nullable: false),
                 UserEmail = table.Column<string>(type: "nvarchar(450)", nullable: true),
                 Created = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false, defaultValueSql: "SYSDATETIMEOFFSET()"),
@@ -67,11 +68,13 @@ public partial class AddJwtAuthenticationSupport : Migration
                 IsRevoked = table.Column<bool>(type: "bit", nullable: false),
                 CreatedByIp = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                 RevokedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                RevokedByIp = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                RevokedByIp = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                UserAgent = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                DeviceInfo = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_RefreshTokens", x => x.Token);
+                table.PrimaryKey("PK_RefreshTokens", x => x.Id);
                 table.ForeignKey(
                     name: "FK_RefreshTokens_Users_UserEmail",
                     column: x => x.UserEmail,
@@ -83,6 +86,12 @@ public partial class AddJwtAuthenticationSupport : Migration
             name: "IX_RefreshTokens_UserEmail",
             table: "RefreshTokens",
             column: "UserEmail");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_RefreshTokens_Token",
+            table: "RefreshTokens",
+            column: "Token",
+            unique: true);
     }
 
     /// <inheritdoc />

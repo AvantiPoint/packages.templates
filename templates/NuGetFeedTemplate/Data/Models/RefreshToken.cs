@@ -5,6 +5,8 @@ namespace NuGetFeedTemplate.Data.Models;
 public class RefreshToken
 {
     [Key]
+    public Guid Id { get; set; }
+
     public string Token { get; set; }
 
     public string UserEmail { get; set; }
@@ -20,6 +22,10 @@ public class RefreshToken
     public DateTimeOffset? RevokedAt { get; set; }
 
     public string RevokedByIp { get; set; }
+
+    // Session tracking information
+    public string UserAgent { get; set; }
+    public string DeviceInfo { get; set; }
 
     public User User { get; set; }
 

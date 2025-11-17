@@ -1,12 +1,9 @@
 using System.Security.Claims;
-using System.Text;
 using AvantiPoint.Packages;
 using AvantiPoint.Packages.Hosting;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using NuGetFeedTemplate.Authentication;
 using NuGetFeedTemplate.Configuration;
 using NuGetFeedTemplate.Data;
@@ -15,30 +12,6 @@ using NuGetFeedTemplate.Models;
 using NuGetFeedTemplate.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Configure JWT settings
-var jwtSettings = new JwtSettings();
-builder.Configuration.GetSection("JwtSettings").Bind(jwtSettings);
-builder.Services.AddSingleton(jwtSettings);
-
-// Configure OAuth settings with backward compatibility
-var oauthSettings = new OAuthSettings();
-builder.Configuration.GetSection("OAuth").Bind(oauthSettings);
-
-// Support legacy AzureAd configuration for backward compatibility
-var azureAdSection = builder.Configuration.GetSection("AzureAd");
-if (azureAdSection.Exists() && oauthSettings.Microsoft == null)
-{
-    oauthSettings.Microsoft = new MicrosoftOAuthSettings();
-    oauthSettings.Microsoft.TenantId = azureAdSection["TenantId"];
-    oauthSettings.Microsoft.ClientId = azureAdSection["ClientId"];
-    oauthSettings.Microsoft.ClientSecret = azureAdSection["ClientSecret"];
-    oauthSettings.Microsoft.Instance = azureAdSection["Instance"] ?? "https://login.microsoftonline.com/";
-    oauthSettings.Microsoft.CallbackPath = azureAdSection["CallbackPath"] ?? "/api/authentication/callback/microsoft";
-    oauthSettings.Provider = "Microsoft";
-}
-
-builder.Services.AddSingleton(oauthSettings);
 
 builder.Services.AddNuGetPackageApi(options =>
 {
@@ -58,63 +31,11 @@ builder.Services.AddNuGetPackageApi(options =>
 });
 
 // Add JWT Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
-    };
-
-    // Support token from cookie for browser requests
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            // Check for token in cookie first (for browser)
-            if (context.Request.Cookies.TryGetValue("access_token", out var token))
-            {
-                context.Token = token;
-            }
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = async context =>
-        {
-            var feedContext = context.HttpContext.RequestServices.GetRequiredService<FeedContext>();
-            var email = context.Principal.FindFirstValue(ClaimTypes.Email);
-            
-            if (!string.IsNullOrEmpty(email))
-            {
-                var user = await feedContext.Users.FirstOrDefaultAsync(x => x.Email == email);
-                
-                if (user != null && user.IsRevoked)
-                {
-                    context.Fail("User access has been revoked.");
-                }
-            }
-        }
-    };
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IOAuthService, OAuthService>();
-
-builder.Services.AddAuthorization(options =>
-{
-    // By default, all incoming requests will be authorized according to the default policy
-    options.FallbackPolicy = options.DefaultPolicy;
-});
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
@@ -234,7 +155,8 @@ try
             }
 
             var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            var (accessToken, refreshToken) = await tokenService.GenerateTokensAsync(user, ipAddress);
+            var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+            var (accessToken, refreshToken) = await tokenService.GenerateTokensAsync(user, ipAddress, userAgent);
 
             // Create or update system token
             var systemToken = await dbContext.AuthTokens
@@ -268,7 +190,8 @@ try
     authGroup.MapPost("/refresh", async (RefreshTokenRequest request, IJwtTokenService tokenService, HttpContext httpContext) =>
     {
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var result = await tokenService.RefreshTokenAsync(request.RefreshToken, ipAddress);
+        var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+        var result = await tokenService.RefreshTokenAsync(request.RefreshToken, ipAddress, userAgent);
 
         if (result == null)
             return Results.Unauthorized();

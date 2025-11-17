@@ -72,6 +72,22 @@
       "replaces": "ReplaceWithASecureRandomKeyAtLeast32CharactersLong",
       "description": "JWT signing secret (minimum 32 characters)"
     },
+    "JwtSecretGenerated": {
+      "type": "generated",
+      "generator": "guid",
+      "replaces": "GeneratedJwtSecretGuid1",
+      "parameters": {
+        "format": "N"
+      }
+    },
+    "JwtSecretGenerated2": {
+      "type": "generated",
+      "generator": "guid",
+      "replaces": "GeneratedJwtSecretGuid2",
+      "parameters": {
+        "format": "N"
+      }
+    },
     "SendGridApiKey": {
       "type": "parameter",
       "datatype": "text",

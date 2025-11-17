@@ -57,10 +57,10 @@ public class GraphProfilePhotoService : IGraphProfilePhotoService
             
             Stream photoStream = null;
 
-            // Try to fetch from the provider's profile picture URL
+            // Try to fetch from the provider's profile picture URL based on configured provider
             if (user != null && !string.IsNullOrEmpty(user.ProfilePictureUrl))
             {
-                photoStream = await FetchProfilePictureFromUrl(user.ProfilePictureUrl, user.ExternalProvider);
+                photoStream = await FetchProfilePictureFromUrl(user.ProfilePictureUrl, _oauthSettings.Provider);
             }
 
             // Fallback to Gravatar if no profile picture from provider

@@ -12,8 +12,8 @@ namespace NuGetFeedTemplate.Services;
 
 public interface IJwtTokenService
 {
-    Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string ipAddress);
-    Task<(string accessToken, string refreshToken)?> RefreshTokenAsync(string refreshToken, string ipAddress);
+    Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string ipAddress, string userAgent = null, string deviceInfo = null);
+    Task<(string accessToken, string refreshToken)?> RefreshTokenAsync(string refreshToken, string ipAddress, string userAgent = null, string deviceInfo = null);
     Task<bool> RevokeTokenAsync(string refreshToken, string ipAddress);
     Task<bool> RevokeAllUserTokensAsync(string userEmail, string ipAddress);
 }
@@ -34,15 +34,15 @@ public class JwtTokenService : IJwtTokenService
         _logger = logger;
     }
 
-    public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string ipAddress)
+    public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string ipAddress, string userAgent = null, string deviceInfo = null)
     {
         var accessToken = GenerateAccessToken(user);
-        var refreshToken = await GenerateRefreshTokenAsync(user, ipAddress);
+        var refreshToken = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceInfo);
         
         return (accessToken, refreshToken);
     }
 
-    public async Task<(string accessToken, string refreshToken)?> RefreshTokenAsync(string refreshToken, string ipAddress)
+    public async Task<(string accessToken, string refreshToken)?> RefreshTokenAsync(string refreshToken, string ipAddress, string userAgent = null, string deviceInfo = null)
     {
         var token = await _dbContext.RefreshTokens
             .Include(x => x.User)
@@ -64,7 +64,7 @@ public class JwtTokenService : IJwtTokenService
 
         // Generate new tokens
         var newAccessToken = GenerateAccessToken(token.User);
-        var newRefreshToken = await GenerateRefreshTokenAsync(token.User, ipAddress);
+        var newRefreshToken = await GenerateRefreshTokenAsync(token.User, ipAddress, userAgent, deviceInfo);
 
         await _dbContext.SaveChangesAsync();
 
@@ -138,14 +138,17 @@ public class JwtTokenService : IJwtTokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private async Task<string> GenerateRefreshTokenAsync(User user, string ipAddress)
+    private async Task<string> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent = null, string deviceInfo = null)
     {
         var refreshToken = new RefreshToken
         {
+            Id = Guid.NewGuid(),
             Token = GenerateSecureToken(),
             UserEmail = user.Email,
             Expires = DateTimeOffset.Now.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-            CreatedByIp = ipAddress
+            CreatedByIp = ipAddress,
+            UserAgent = userAgent,
+            DeviceInfo = deviceInfo
         };
 
         _dbContext.RefreshTokens.Add(refreshToken);
