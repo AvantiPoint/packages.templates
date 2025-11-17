@@ -13,23 +13,80 @@
   },
   "preferNameDirectory": true,
   "symbols": {
-    "ADDomain": {
+    "OAuthProvider": {
       "type": "parameter",
-      "datatype": "text",
-      "defaultValue": "contoso.com",
-      "replaces": "ReplaceDomain"
+      "datatype": "choice",
+      "defaultValue": "Microsoft",
+      "choices": [
+        {
+          "choice": "Microsoft",
+          "description": "Use Microsoft Azure AD for authentication"
+        },
+        {
+          "choice": "Google",
+          "description": "Use Google OAuth for authentication"
+        }
+      ],
+      "replaces": "Microsoft",
+      "description": "The OAuth provider to use for authentication"
     },
-    "ADTenantId": {
+    "MSTenantId": {
       "type": "parameter",
       "datatype": "text",
       "defaultValue": "00000000-0000-0000-0000-000000000000",
-      "replaces": "ReplaceTenantId"
+      "replaces": "ReplaceTenantId",
+      "description": "Microsoft Azure AD Tenant ID (only used if OAuthProvider is Microsoft)"
     },
-    "ADClientId": {
+    "MSClientId": {
       "type": "parameter",
       "datatype": "text",
       "defaultValue": "11111111-1111-1111-1111-111111111111",
-      "replaces": "ReplaceClientId"
+      "replaces": "ReplaceClientId",
+      "description": "Microsoft Azure AD Client ID (only used if OAuthProvider is Microsoft)"
+    },
+    "MSClientSecret": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "",
+      "replaces": "ReplaceClientSecret",
+      "description": "Microsoft Azure AD Client Secret (only used if OAuthProvider is Microsoft)"
+    },
+    "GoogleClientId": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "",
+      "replaces": "ReplaceGoogleClientId",
+      "description": "Google OAuth Client ID (only used if OAuthProvider is Google)"
+    },
+    "GoogleClientSecret": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "",
+      "replaces": "ReplaceGoogleClientSecret",
+      "description": "Google OAuth Client Secret (only used if OAuthProvider is Google)"
+    },
+    "JwtSecret": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "",
+      "replaces": "ReplaceWithASecureRandomKeyAtLeast32CharactersLong",
+      "description": "JWT signing secret (minimum 32 characters)"
+    },
+    "JwtSecretGenerated": {
+      "type": "generated",
+      "generator": "guid",
+      "replaces": "GeneratedJwtSecretGuid1",
+      "parameters": {
+        "format": "N"
+      }
+    },
+    "JwtSecretGenerated2": {
+      "type": "generated",
+      "generator": "guid",
+      "replaces": "GeneratedJwtSecretGuid2",
+      "parameters": {
+        "format": "N"
+      }
     },
     "SendGridApiKey": {
       "type": "parameter",
@@ -42,6 +99,12 @@
       "datatype": "text",
       "defaultValue": "",
       "replaces": "ReplacePostmarkApiKey"
+    },
+    "EmailFromDomain": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "example.com",
+      "replaces": "ReplaceDomain"
     }
   },
   "sources": [

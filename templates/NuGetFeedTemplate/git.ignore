@@ -24,3 +24,4 @@ bld/
 .vscode/
 
 **/wwwroot/lib
+**/wwwroot/profile-cache

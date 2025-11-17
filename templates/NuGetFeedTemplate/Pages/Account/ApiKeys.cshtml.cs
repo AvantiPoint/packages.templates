@@ -76,7 +76,7 @@ namespace NuGetFeedTemplate.Pages
                 .Include(x => x.User)
                 .FirstOrDefaultAsync(x =>
                     x.Key == tokenRequest.Id &&
-                    x.UserEmail == User.FindFirstValue("preferred_username"));
+                    x.UserEmail == User.FindFirstValue(ClaimTypes.Email));
 
             if (token != null && DateTimeOffset.Now < token.Expires)
             {
@@ -103,15 +103,15 @@ namespace NuGetFeedTemplate.Pages
             var authToken = new AuthToken
             {
                 Description = description,
-                UserEmail = User.FindFirstValue("preferred_username")
+                UserEmail = User.FindFirstValue(ClaimTypes.Email)
             };
-            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue(ClaimTypes.Name));
             if (!await _dbContext.Users.AnyAsync(x => x.Email == authToken.UserEmail))
             {
                 var user = new User
                 {
                     Email = authToken.UserEmail,
-                    Name = User.FindFirstValue("name"),
+                    Name = User.FindFirstValue(ClaimTypes.Name),
                     PackagePublisher = !await _dbContext.Users.AnyAsync()
                 };
                 _dbContext.Users.Add(user);
@@ -150,7 +150,7 @@ namespace NuGetFeedTemplate.Pages
         private async Task OnRegenerate(string tokenKey, IEmailService emailService)
         {
             var authToken = await _dbContext.AuthTokens
-                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue("preferred_username"));
+                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue(ClaimTypes.Email));
 
             if (authToken is null)
                 return;
@@ -169,7 +169,7 @@ namespace NuGetFeedTemplate.Pages
             _dbContext.AuthTokens.Add(regeneratedToken);
             await _dbContext.SaveChangesAsync();
 
-            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue(ClaimTypes.Name));
             await emailService.SendEmail(
                 EmailTemplates.TokenRegenerated,
                 to,
@@ -186,7 +186,7 @@ namespace NuGetFeedTemplate.Pages
         private async Task OnDelete(string tokenKey, IEmailService emailService)
         {
             var authToken = await _dbContext.AuthTokens
-                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue("preferred_username"));
+                .FirstOrDefaultAsync(x => x.Key == tokenKey && x.UserEmail == User.FindFirstValue(ClaimTypes.Email));
 
             if (authToken is null)
                 return;
@@ -195,7 +195,7 @@ namespace NuGetFeedTemplate.Pages
             _dbContext.AuthTokens.Update(authToken);
             await _dbContext.SaveChangesAsync();
 
-            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue("name"));
+            var to = new MailAddress(authToken.UserEmail, User.FindFirstValue(ClaimTypes.Name));
             await emailService.SendEmail(
                 EmailTemplates.TokenRevoked,
                 to,
@@ -209,7 +209,7 @@ namespace NuGetFeedTemplate.Pages
 
         private async Task RefreshKeys()
         {
-            var email = User.FindFirstValue("preferred_username");
+            var email = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(email))
                 return;
 
@@ -217,7 +217,7 @@ namespace NuGetFeedTemplate.Pages
                 CurrentPage = 1;
 
             TotalKeys = await _dbContext.AuthTokens
-                .Where(x => x.UserEmail == User.FindFirstValue("preferred_username") && x.IsSystemToken == false)
+                .Where(x => x.UserEmail == User.FindFirstValue(ClaimTypes.Email) && x.IsSystemToken == false)
                 .CountAsync();
 
             var lastPage = (int)Math.Ceiling((double)TotalKeys / 10.0);
